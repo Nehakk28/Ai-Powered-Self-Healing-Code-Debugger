@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>DebugAI - Minimalist Login</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#356769",
+                        "background-light": "#f9fafa",
+                        "background-dark": "#242628",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+
+        .debug-grid {
+            background-size: 40px 40px;
+            background-image: radial-gradient(circle, #35676911 1px, transparent 1px);
+        }
+    </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark font-display antialiased min-h-screen flex flex-col">
+    <!-- Top Navigation Bar -->
+    <header
+        class="flex items-center justify-between whitespace-nowrap border-b border-solid border-[#ebefef] dark:border-[#3a3d40] px-6 py-4 md:px-10">
+        <div class="flex items-center gap-3 text-primary dark:text-white">
+            <div class="size-8 flex items-center justify-center bg-primary text-white rounded-lg">
+                <span class="material-symbols-outlined text-xl">terminal</span>
+            </div>
+            <h2 class="text-[#121717] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">DebugAI</h2>
+        </div>
+        {% comment %} <div class="flex flex-1 justify-end gap-6 items-center">
+            <div class="hidden md:flex items-center gap-8">
+                <a class="text-[#121717] dark:text-white/80 text-sm font-medium hover:text-primary transition-colors"
+                    href="#">Features</a>
+                <a class="text-[#121717] dark:text-white/80 text-sm font-medium hover:text-primary transition-colors"
+                    href="#">Pricing</a>
+                <a class="text-[#121717] dark:text-white/80 text-sm font-medium hover:text-primary transition-colors"
+                    href="#">Docs</a>
+            </div>
+            <button
+                class="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-5 bg-primary/10 text-primary dark:bg-primary/20 dark:text-white text-sm font-bold transition-all hover:bg-primary/20">
+                <span class="truncate">Documentation</span>
+            </button>
+        </div> {% endcomment %}
+    </header>
+    <!-- Main Content Area with Background Pattern -->
+    <main class="flex-1 flex items-center justify-center p-6 debug-grid">
+        <div class="w-full max-w-[440px]">
+            <!-- Login Card -->
+            <div
+                class="bg-white dark:bg-[#2d3033] rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[#ebefef] dark:border-[#3a3d40] overflow-hidden">
+                <!-- Card Header -->
+                <div class="px-8 pt-10 pb-6 text-center">
+                    {% comment %} <div
+                        class="inline-flex items-center justify-center size-12 mb-4 rounded-full bg-primary/5 dark:bg-primary/20">
+                        <span class="material-symbols-outlined text-primary text-2xl">fingerprint</span>
+                    </div> {% endcomment %}
+                    <h1 class="text-[#121717] dark:text-white text-2xl font-bold tracking-tight">Sign in to your account
+                    </h1>
+                    <p class="text-[#648182] dark:text-white/60 text-sm mt-2">Welcome back to the intelligent terminal.
+                    </p>
+                </div>
+                <!-- Card Form -->
+                <div class="px-8 pb-10">
+                    {% if messages %}
+                    <div class="mb-4 space-y-2">
+                        {% for message in messages %}
+                        <div class="p-3 rounded-lg text-sm font-medium
+                            {% if message.tags == 'error' %}bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400
+                            {% elif message.tags == 'success' %}bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400
+                            {% else %}bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400{% endif %}">
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <form method="post" class="space-y-5">
+                        {% csrf_token %}
+                        <!-- Email Field -->
+                        <div class="space-y-2">
+                            <label class="block text-[#121717] dark:text-white/90 text-sm font-semibold"
+                                for="email">Email address</label>
+                            <div class="relative">
+                                <span
+                                    class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#648182] text-xl">alternate_email</span>
+                                <input
+                                    class="w-full pl-10 pr-4 h-12 rounded-lg border border-[#d7e0e0] dark:border-[#3a3d40] bg-background-light dark:bg-background-dark text-[#121717] dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-[#648182]/60"
+                                    id="email" name="email" placeholder="name@company.com" required="" type="email" />
+                            </div>
+                        </div>
+                        <!-- Password Field -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center">
+                                <label class="block text-[#121717] dark:text-white/90 text-sm font-semibold"
+                                    for="password">Password</label>
+                                <a class="text-primary text-xs font-semibold hover:underline" href="{% url 'users:forgot_password' %}">Forgot?</a>
+                            </div>
+<div class="relative w-full">
+  <input
+    class="w-full pl-10 pr-12 h-12 rounded-lg border border-[#d7e0e0] dark:border-[#3a3d40] bg-background-light dark:bg-background-dark text-[#121717] dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-[#648182]/60"
+    id="password" name="password" placeholder="••••••••" required="" type="password" />
+
+  <button
+    type="button"
+    onclick="
+      const input = document.getElementById('password');
+      const isPassword = input.type === 'password';
+      input.type = isPassword ? 'text' : 'password';
+      this.querySelector('.eye-open').classList.toggle('hidden', !isPassword);
+      this.querySelector('.eye-closed').classList.toggle('hidden', isPassword);
+    "
+    class="absolute right-3 top-1/2 -translate-y-1/2 text-[#648182] hover:text-[#121717] dark:hover:text-white transition-colors focus:outline-none"
+    aria-label="Toggle password visibility"
+  >
+    <!-- Eye Open -->
+    <svg class="eye-open w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+    </svg>
+    <!-- Eye Closed -->
+    <svg class="eye-closed w-5 h-5 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.956 9.956 0 012.293-3.95M6.696 6.697A9.965 9.965 0 0112 5c4.477 0 8.268 2.943 9.542 7a9.965 9.965 0 01-1.755 3.013M15 12a3 3 0 01-4.243 4.243M9.879 9.879A3 3 0 0115 12M3 3l18 18" />
+    </svg>
+  </button>
+</div>
+                        </div>
+                        <!-- Submit Button -->
+                        <button
+                            class="w-full h-12 bg-primary hover:bg-opacity-90 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2 mt-2 group shadow-lg shadow-primary/10"
+                            type="submit">
+                            <span>Log In</span>
+                            <span
+                                class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                        </button>
+                    </form>
+                    <!-- Divider -->
+                    <div class="mt-8 pt-6 border-t border-[#ebefef] dark:border-[#3a3d40] text-center">
+                        <p class="text-[#648182] dark:text-white/60 text-sm">
+                            Don't have an account?
+                            <a class="text-primary font-bold hover:underline ml-1" href="/signup">Sign up for free</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <!-- Context Footer -->
+            <div class="mt-8 text-center px-4">
+                <div class="flex items-center justify-center gap-6 mb-4">
+                    <div
+                        class="flex items-center gap-1.5 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 transition-all cursor-default">
+                        <span class="material-symbols-outlined text-sm">bolt</span>
+                        <span
+                            class="text-[10px] font-bold uppercase tracking-widest text-[#121717] dark:text-white">Auto-Fix</span>
+                    </div>
+                    <div
+                        class="flex items-center gap-1.5 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 transition-all cursor-default">
+                        <span class="material-symbols-outlined text-sm">security</span>
+                        <span
+                            class="text-[10px] font-bold uppercase tracking-widest text-[#121717] dark:text-white">Secure
+                            Auth</span>
+                    </div>
+                    <div
+                        class="flex items-center gap-1.5 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 transition-all cursor-default">
+                        <span class="material-symbols-outlined text-sm">history_edu</span>
+                        <span
+                            class="text-[10px] font-bold uppercase tracking-widest text-[#121717] dark:text-white">Audit
+                            Logs</span>
+                    </div>
+                </div>
+                <p class="text-[11px] text-[#648182] dark:text-white/40 leading-relaxed max-w-xs mx-auto">
+                    By continuing, you agree to our Terms of Service and Privacy Policy. DebugAI is trusted by over
+                    10,000 engineering teams worldwide.
+                </p>
+            </div>
+        </div>
+    </main>
+    <!-- Footer Meta -->
+    <footer
+        class="py-6 px-10 border-t border-[#ebefef] dark:border-[#3a3d40] flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="text-[12px] text-[#648182] dark:text-white/40">
+            © 2024 DebugAI Systems Inc. All rights reserved.
+        </div>
+        <div class="flex gap-6">
+            <a class="text-[12px] text-[#648182] dark:text-white/40 hover:text-primary" href="#">Status</a>
+            <a class="text-[12px] text-[#648182] dark:text-white/40 hover:text-primary" href="#">Support</a>
+            <a class="text-[12px] text-[#648182] dark:text-white/40 hover:text-primary" href="#">API</a>
+        </div>
+    </footer>
+</body>
+
+</html>

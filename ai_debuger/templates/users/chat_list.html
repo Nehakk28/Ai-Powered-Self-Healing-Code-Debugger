@@ -1,0 +1,181 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+<div class="flex h-screen bg-slate-50 dark:bg-slate-900">
+
+    <!-- Sidebar -->
+
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+
+        <!-- Header -->
+        <div class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-8 py-6">
+            <div class="flex items-center justify-between mb-2">
+                <div>
+                    <h1 class="text-3xl font-bold text-slate-900 dark:text-slate-100">Debugging History</h1>
+                    <p class="text-slate-600 dark:text-slate-400 mt-1">
+                        Review past fixing sessions, retrieve optimized code blocks, and track your resolution
+                        efficiency.
+                    </p>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Search & Filters -->
+        <div class="bg-white dark:bg-slate-800 px-8 py-4 border-b border-slate-200 dark:border-slate-700">
+            <form method="GET" class="flex items-center gap-4">
+                <!-- Search Bar -->
+                <div class="flex-1 relative">
+                    <span class="material-symbols-outlined absolute left-4 top-3 text-slate-400">search</span>
+                    <input type="text" name="search" value="{{ search_query }}"
+                        placeholder="Search sessions by error type, keyword, or snippet content..."
+                        class="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-teal-500">
+                </div>
+
+                <!-- Language Filter -->
+
+            </form>
+
+            <!-- Language Tabs -->
+
+        </div>
+
+        <!-- Sessions List -->
+        <div class="flex-1 overflow-y-auto px-8 py-6">
+            <div class="space-y-3">
+                {% if chats %}
+                {% for chat in chats %}
+                <div
+                    class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-6 hover:shadow-md transition-shadow">
+                    <div class="flex items-start gap-4">
+                        <!-- Icon -->
+                        <div
+                            class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <span class="material-symbols-outlined text-blue-600 dark:text-blue-400">code</span>
+                        </div>
+
+                        <!-- Content -->
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-start justify-between mb-2">
+                                <div class="flex-1">
+                                    <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-1">
+                                        {{ chat.title }}
+                                    </h3>
+                                    <p class="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">
+                                        {% with first_message=chat.messages.first %}
+                                        {% if first_message %}
+                                        {{ first_message.content|truncatewords:20|striptags }}
+                                        {% else %}
+                                        No messages in this session
+                                        {% endif %}
+                                        {% endwith %}
+                                    </p>
+                                </div>
+
+                                <!-- Status Badge -->
+                                <span
+                                    class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-semibold rounded-full uppercase">
+                                    Success
+                                </span>
+                            </div>
+
+                            <!-- Meta Info -->
+                            <div class="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
+                                <div class="flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-base">calendar_today</span>
+                                    <span>{{ chat.created_at|date:"M d, Y" }}</span>
+                                </div>
+
+                                <div class="flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-base">schedule</span>
+                                    <span>{{ chat.created_at|date:"H:i" }}</span>
+                                </div>
+
+                                <div class="flex items-center gap-1">
+                                    <span
+                                        class="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded text-xs font-medium">
+                                        PYTHON
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Button -->
+                        <a href="{% url 'users:chat_detail' chat.session_id %}"
+                            class="w-10 h-10 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors flex-shrink-0"
+                            title="View Details">
+                            <span class="material-symbols-outlined">visibility</span>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <!-- Empty State -->
+                <div class="text-center py-16">
+                    <div
+                        class="w-24 h-24 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="material-symbols-outlined text-slate-400 text-5xl">history</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                        No debugging sessions found
+                    </h3>
+                    <p class="text-slate-500 dark:text-slate-400 mb-6">
+                        {% if search_query %}
+                        No sessions match your search criteria.
+                        {% else %}
+                        Start debugging to see your session history here.
+                        {% endif %}
+                    </p>
+                    {% if not search_query %}
+                    <a href="{% url 'users:new_chat' %}"
+                        class="inline-flex items-center gap-2 bg-teal-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-teal-700 transition-colors">
+                        <span class="material-symbols-outlined">add</span>
+                        <span>Start New Session</span>
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Pagination -->
+            {% if chats %}
+            <div class="flex items-center justify-between mt-8 pt-6 border-t border-slate-200 dark:border-slate-700">
+                <p class="text-sm text-slate-600 dark:text-slate-400">
+                    Showing 1 to 5 of {{ chats.count }} sessions
+                </p>
+
+                <div class="flex items-center gap-2">
+                    <button
+                        class="w-10 h-10 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                        <span class="material-symbols-outlined">chevron_left</span>
+                    </button>
+
+                    <button
+                        class="w-10 h-10 bg-teal-600 text-white rounded-lg flex items-center justify-center font-medium">
+                        1
+                    </button>
+
+                    <button
+                        class="w-10 h-10 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                        2
+                    </button>
+
+                    <button
+                        class="w-10 h-10 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                        3
+                    </button>
+
+                    <button
+                        class="w-10 h-10 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

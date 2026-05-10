@@ -1,0 +1,511 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+
+<style>
+    #editor-container {
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
+    }
+    
+    .monaco-editor {
+        padding-top: 10px;
+    }
+
+    /* Moving Border Container */
+    .btn-roto {
+        position: relative;
+        z-index: 1;
+        overflow: hidden;
+    }
+    .btn-roto::before {
+        content: '';
+        position: absolute;
+        z-index: -2;
+        left: -50%;
+        top: -50%;
+        width: 200%;
+        height: 200%;
+        background-image: conic-gradient(transparent, #10b981, transparent 30%);
+        animation: rotate-border 4s linear infinite;
+    }
+    .btn-roto::after {
+        content: '';
+        position: absolute;
+        z-index: -1;
+        left: 2px;
+        top: 2px;
+        width: calc(100% - 4px);
+        height: calc(100% - 4px);
+        background: inherit;
+        border-radius: 6px;
+    }
+    @keyframes rotate-border { 100% { transform: rotate(1turn); } }
+</style>
+<!-- Load Monaco Editor -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+<div class="flex h-screen bg-gray-50 dark:bg-[#1a1d1f] overflow-hidden">
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col min-w-0">
+
+        <!-- Editor Toolbar -->
+        <div class="bg-white dark:bg-[#242628] border-b border-gray-200 dark:border-gray-800 px-6 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="relative group">
+                    <select id="language-select" name="language" form="debug-form"
+                        class="appearance-none flex items-center gap-2 px-4 pr-10 py-2 bg-gray-50 dark:bg-[#1a1d1f] border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium transition-all hover:border-primary outline-none cursor-pointer text-gray-700 dark:text-gray-300">
+                        <option value="python" {% if language == 'python' %}selected{% endif %}>Python</option>
+                        <option value="javascript" {% if language == 'javascript' %}selected{% endif %}>JavaScript</option>
+                        <option value="cpp" {% if language == 'cpp' %}selected{% endif %}>C++</option>
+                        <option value="java" {% if language == 'java' %}selected{% endif %}>Java</option>
+                        <option value="c" {% if language == 'c' %}selected{% endif %}>C</option>
+                        <option value="csharp" {% if language == 'csharp' %}selected{% endif %}>C#</option>
+                        <option value="go" {% if language == 'go' %}selected{% endif %}>Go</option>
+                        <option value="php" {% if language == 'php' %}selected{% endif %}>PHP</option>
+                    </select>
+                    <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-sm">
+                        expand_more
+                    </span>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="button" id="copy-btn"
+                    class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary transition-colors">
+                    <span class="material-symbols-outlined text-lg">content_copy</span>
+                    <span>Copy</span>
+                </button>
+                <button type="button" id="clear-btn"
+                    class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-red-500 transition-colors">
+                    <span class="material-symbols-outlined text-lg">delete</span>
+                    <span>Clear</span>
+                </button>
+                <div class="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2"></div>
+                <button type="submit" form="debug-form" id="debug-btn"
+                    class="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20 active:scale-95">
+                    <span class="material-symbols-outlined text-lg">bolt</span>
+                    <span>Debug Now</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Split Pane: Editor + AI Panel -->
+        <div class="flex-1 flex overflow-hidden bg-gray-50 dark:bg-[#1a1d1f]">
+            <!-- Code Editor Pane (Wrapped in Form) -->
+            <form id="debug-form" method="POST" action="{% url 'users:debugger_answer_view' %}"
+                class="flex-1 flex flex-col border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-[#242628]">
+                {% csrf_token %}
+
+                <div id="editor-container" class="flex-1">
+                    <div id="monaco-editor" class="w-full h-full"></div>
+                </div>
+                <!-- Hidden textarea to keep the form working -->
+                <textarea id="code-editor" name="code" style="display: none;">{{ code|default:'' }}</textarea>
+
+                <!-- Status Bar -->
+                <div class="h-10 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#1a1d1f] flex items-center justify-between px-4 text-[10px] font-mono text-gray-600 dark:text-gray-400">
+                    <div class="flex items-center gap-4">
+                        <span class="flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-xs text-primary">check_circle</span>
+                            <span id="editor-status">Ready</span>
+                        </span>
+                        <span class="flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-xs">sync</span>
+                            <span>Sync Active</span>
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span id="cursor-position">Ln 1, Col 1</span>
+                        <span>Spaces: 4</span>
+                        <span>UTF-8</span>
+                        <span id="char-count">0 chars</span>
+                    </div>
+                </div>
+            </form>
+
+            <!-- AI Analysis Pane -->
+            <div id="ai-pane"
+                class="w-full md:w-[420px] bg-white dark:bg-[#242628] flex flex-col items-center justify-center p-8 text-center overflow-y-auto">
+                {% if analysis %}
+                <!-- Analysis Results -->
+                <div class="w-full max-w-md space-y-4">
+                    <div class="text-center mb-6">
+                        <div class="size-16 bg-gradient-to-br from-green-100 to-green-50 dark:from-green-900/30 dark:to-green-900/10 rounded-2xl shadow-lg flex items-center justify-center border border-green-200 dark:border-green-800 mx-auto mb-4">
+                            <span class="material-symbols-outlined text-3xl text-green-600 dark:text-green-400">check_circle</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Analysis Complete!</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">We found {{ analysis.bugs_found }} issue(s) in your code</p>
+                    </div>
+
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-3 gap-3 mb-6">
+                        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 text-center">
+                            <div class="text-2xl font-bold text-red-600 dark:text-red-400">{{ analysis.bugs_found }}</div>
+                            <div class="text-[10px] text-red-600 dark:text-red-400 font-medium">Bugs</div>
+                        </div>
+                        <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-center">
+                            <div class="text-2xl font-bold text-amber-600 dark:text-amber-400">{{ analysis.security_issues }}</div>
+                            <div class="text-[10px] text-amber-600 dark:text-amber-400 font-medium">Security</div>
+                        </div>
+                        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 text-center">
+                            <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ analysis.performance_issues }}</div>
+                            <div class="text-[10px] text-blue-600 dark:text-blue-400 font-medium">Performance</div>
+                        </div>
+                    </div>
+
+                    <!-- Issues List -->
+                    {% if analysis.issues %}
+                    <div class="space-y-3">
+                        <h4 class="text-sm font-bold text-gray-900 dark:text-white text-left">Issues Found:</h4>
+                        {% for issue in analysis.issues %}
+                        <div class="bg-gradient-to-br from-red-50 to-red-50/50 dark:from-red-900/20 dark:to-red-900/10 p-4 rounded-xl border border-red-200 dark:border-red-800 text-left">
+                            <div class="flex items-start gap-3 mb-2">
+                                <span class="material-symbols-outlined text-red-600 dark:text-red-400 text-xl">error</span>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="text-xs font-bold text-red-600 dark:text-red-400">Line {{ issue.line }}</span>
+                                        <span class="text-[10px] px-2 py-0.5 bg-red-200 dark:bg-red-900/40 text-red-800 dark:text-red-300 rounded-full">{{ issue.severity }}</span>
+                                    </div>
+                                    <p class="text-sm font-semibold text-gray-900 dark:text-white mb-1">{{ issue.message }}</p>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400">💡 {{ issue.suggestion }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Suggestions -->
+                    {% if analysis.suggestions %}
+                    <div class="space-y-3">
+                        <h4 class="text-sm font-bold text-gray-900 dark:text-white text-left">Suggestions:</h4>
+                        {% for suggestion in analysis.suggestions %}
+                        <div class="bg-gradient-to-br from-blue-50 to-blue-50/50 dark:from-blue-900/20 dark:to-blue-900/10 p-3 rounded-lg border border-blue-200 dark:border-blue-800 text-left flex items-start gap-2">
+                            <span class="material-symbols-outlined text-blue-600 dark:text-blue-400 text-lg flex-shrink-0">lightbulb</span>
+                            <p class="text-xs text-gray-700 dark:text-gray-300">{{ suggestion }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Feedback Buttons -->
+                    <div class="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-3">
+                        <p class="text-sm font-bold text-gray-900 dark:text-white">Was this helpful?</p>
+                        
+                        <!-- Hidden form for feedback -->
+                        <form id="feedback-form" method="POST" action="{% url 'users:debugger_feedback' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="code" value="{{ analysis.code }}">
+                            <input type="hidden" name="language" value="{{ analysis.language }}">
+                            <input type="hidden" name="analysis_summary" value="Bugs: {{ analysis.bugs_found }}, Security: {{ analysis.security_issues }}, Performance: {{ analysis.performance_issues }}">
+                            <input type="hidden" name="feedback" id="feedback-value">
+                        </form>
+
+                        <div class="flex gap-2">
+                            <button type="button" onclick="submitFeedback('good')"
+                                class="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2">
+                                <span class="material-symbols-outlined">thumb_up</span>
+                                Good
+                            </button>
+                            <button type="button" onclick="submitFeedback('bad')"
+                                class="flex-1 bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2">
+                                <span class="material-symbols-outlined">thumb_down</span>
+                                Need Help
+                            </button>
+                        </div>
+                        
+<!-- Feedback Section -->
+<div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+    <p class="text-sm font-bold text-gray-900 dark:text-white mb-4 text-center">
+        Was this analysis helpful?
+    </p>
+    
+    <form method="POST" action="{% url 'users:debugger_feedback' %}">
+        {% csrf_token %}
+        <input type="hidden" name="code" value="{{ analysis.code }}">
+        <input type="hidden" name="language" value="{{ analysis.language }}">
+        <input type="hidden" name="bugs" value="{{ analysis.bugs_found }}">
+        <input type="hidden" name="security" value="{{ analysis.security_issues }}">
+        <input type="hidden" name="performance" value="{{ analysis.performance_issues }}">
+        
+        <div class="flex gap-3 mb-3">
+            <button type="submit" name="feedback" value="good"
+                class="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined">thumb_up</span>
+                Yes, Helpful!
+            </button>
+            
+            <button type="submit" name="feedback" value="bad"
+                class="flex-1 bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined">thumb_down</span>
+                No, Need Help
+            </button>
+        </div>
+        
+        <p class="text-xs text-center text-gray-500 dark:text-gray-400">
+            Click "Need Help" to chat with AI assistant
+        </p>
+    </form>
+    
+    <button type="button" onclick="window.location.reload()"
+        class="w-full mt-4 bg-primary hover:bg-primary/90 text-white px-4 py-2.5 rounded-lg text-sm font-bold transition-all">
+        Analyze New Code
+    </button>
+</div>
+                    </div>
+                </div>
+                {% else %}
+                <!-- Default State: Awaiting Code -->
+                <div class="mb-6 relative">
+                    <div class="absolute inset-0 bg-primary/10 rounded-full scale-150 animate-ping opacity-20"></div>
+                    <div class="size-20 bg-gradient-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 rounded-2xl shadow-lg flex items-center justify-center border border-primary/20 relative z-10">
+                        <span class="material-symbols-outlined text-4xl text-primary">psychology</span>
+                    </div>
+                </div>
+                <h3 class="text-xl font-bold mb-2 text-gray-900 dark:text-white">Awaiting Code...</h3>
+                <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed max-w-xs mb-8">
+                    Paste your code snippet or upload a file to begin the AI-powered deep analysis. We'll identify bugs,
+                    security vulnerabilities, and performance bottlenecks.
+                </p>
+                <div class="w-full space-y-3">
+                    <div class="bg-gradient-to-br from-amber-50 to-amber-50/50 dark:from-amber-900/20 dark:to-amber-900/10 p-4 rounded-xl border border-amber-200 dark:border-amber-800 flex items-start gap-4 text-left">
+                        <div class="bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 p-2.5 rounded-lg flex-shrink-0">
+                            <span class="material-symbols-outlined text-xl">lightbulb</span>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-gray-900 dark:text-white mb-1">Smart Fixes</p>
+                            <p class="text-xs text-gray-600 dark:text-gray-400">Get one-click solutions for syntax errors.</p>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-br from-blue-50 to-blue-50/50 dark:from-blue-900/20 dark:to-blue-900/10 p-4 rounded-xl border border-blue-200 dark:border-blue-800 flex items-start gap-4 text-left">
+                        <div class="bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 p-2.5 rounded-lg flex-shrink-0">
+                            <span class="material-symbols-outlined text-xl">security</span>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-gray-900 dark:text-white mb-1">Security Scan</p>
+                            <p class="text-xs text-gray-600 dark:text-gray-400">Identify potential leaks and vulnerabilities.</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Editor Styles */
+    #code-editor {
+        color: transparent;
+        background: transparent;
+        caret-color: #356769;
+    }
+
+    #code-editor::selection {
+        background-color: rgba(53, 103, 105, 0.3);
+    }
+
+    #highlight-overlay {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+
+    /* Syntax Highlighting Colors (Light Mode) */
+    .syntax-keyword {
+        color: #d73a49;
+        font-weight: 600;
+    }
+
+    .syntax-string {
+        color: #032f62;
+    }
+
+    .syntax-number {
+        color: #005cc5;
+    }
+
+    .syntax-comment {
+        color: #6a737d;
+        font-style: italic;
+    }
+
+    .syntax-function {
+        color: #6f42c1;
+        font-weight: 500;
+    }
+
+    .syntax-class {
+        color: #22863a;
+        font-weight: 600;
+    }
+
+    .syntax-builtin {
+        color: #005cc5;
+    }
+
+    .syntax-operator {
+        color: #d73a49;
+    }
+
+    /* Syntax Highlighting Colors (Dark Mode) */
+    .dark .syntax-keyword {
+        color: #ff7b72;
+    }
+
+    .dark .syntax-string {
+        color: #a5d6ff;
+    }
+
+    .dark .syntax-number {
+        color: #79c0ff;
+    }
+
+    .dark .syntax-comment {
+        color: #8b949e;
+    }
+
+    .dark .syntax-function {
+        color: #d2a8ff;
+    }
+
+    .dark .syntax-class {
+        color: #7ee787;
+    }
+
+    .dark .syntax-builtin {
+        color: #79c0ff;
+    }
+
+    .dark .syntax-operator {
+        color: #ff7b72;
+    }
+
+    /* Custom Scrollbar */
+    #code-editor::-webkit-scrollbar,
+    #highlight-overlay::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+
+    #code-editor::-webkit-scrollbar-track,
+    #highlight-overlay::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    #code-editor::-webkit-scrollbar-thumb,
+    #highlight-overlay::-webkit-scrollbar-thumb {
+        background: rgba(53, 103, 105, 0.2);
+        border-radius: 5px;
+    }
+
+    #code-editor::-webkit-scrollbar-thumb:hover,
+    #highlight-overlay::-webkit-scrollbar-thumb:hover {
+        background: rgba(53, 103, 105, 0.4);
+    }
+</style>
+
+<script>
+    let editor;
+    const codeTextArea = document.getElementById('code-editor');
+    const languageSelect = document.getElementById('language-select');
+    const debugForm = document.getElementById('debug-form');
+    const debugBtn = document.getElementById('debug-btn');
+    const copyBtn = document.getElementById('copy-btn');
+    const clearBtn = document.getElementById('clear-btn');
+    const charCount = document.getElementById('char-count');
+    const cursorPosition = document.getElementById('cursor-position');
+
+    // Initialize Monaco
+    require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } });
+    require(['vs/editor/editor.main'], function() {
+        // Determine theme
+        const isDark = document.documentElement.classList.contains('dark') || 
+                      window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        editor = monaco.editor.create(document.getElementById('monaco-editor'), {
+            value: codeTextArea.value,
+            language: languageSelect.value,
+            theme: isDark ? 'vs-dark' : 'vs',
+            automaticLayout: true,
+            fontSize: 14,
+            lineHeight: 24,
+            fontFamily: "'Fira Code', monospace",
+            minimap: { enabled: false },
+            scrollBeyondLastLine: false,
+            padding: { top: 20 },
+            tabSize: 4,
+            renderWhitespace: 'selection',
+            roundedSelection: true,
+            cursorSmoothCaretAnimation: 'on'
+        });
+
+        // Sync with hidden textarea
+        editor.onDidChangeModelContent(() => {
+            const code = editor.getValue();
+            codeTextArea.value = code;
+            charCount.textContent = `${code.length} chars`;
+        });
+
+        // Sync cursor position
+        editor.onDidChangeCursorPosition((e) => {
+            cursorPosition.textContent = `Ln ${e.position.lineNumber}, Col ${e.position.column}`;
+        });
+
+        // Initial stats
+        charCount.textContent = `${editor.getValue().length} chars`;
+    });
+
+    // Language change
+    languageSelect.addEventListener('change', () => {
+        if (editor) {
+            monaco.editor.setModelLanguage(editor.getModel(), languageSelect.value);
+        }
+    });
+
+    // Copy button
+    copyBtn.addEventListener('click', async () => {
+        const code = editor ? editor.getValue() : codeTextArea.value;
+        try {
+            await navigator.clipboard.writeText(code);
+            const btnText = copyBtn.querySelector('span:last-child');
+            const originalText = btnText.textContent;
+            btnText.textContent = 'Copied!';
+            copyBtn.classList.add('text-green-500');
+            setTimeout(() => {
+                btnText.textContent = originalText;
+                copyBtn.classList.remove('text-green-500');
+            }, 2000);
+        } catch (err) {
+            console.error('Failed to copy:', err);
+        }
+    });
+
+    // Clear button
+    clearBtn.addEventListener('click', () => {
+        if (confirm('Clear editor?')) {
+            if (editor) editor.setValue('');
+            else codeTextArea.value = '';
+        }
+    });
+
+    // Form submission
+    debugForm.addEventListener('submit', (e) => {
+        const code = editor ? editor.getValue().trim() : codeTextArea.value.trim();
+        if (!code) {
+            e.preventDefault();
+            alert('Enter code first!');
+            return;
+        }
+        codeTextArea.value = code; // Final sync
+        debugBtn.innerHTML = '<span class="material-symbols-outlined text-lg animate-spin">progress_activity</span> <span>Analyzing...</span>';
+        debugBtn.disabled = true;
+    });
+
+    // Theme listener (optional)
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+        if (editor) {
+            monaco.editor.setTheme(e.matches ? 'vs-dark' : 'vs');
+        }
+    });
+</script>
+{% endblock %}

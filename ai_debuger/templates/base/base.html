@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <script>
+        // Initialize theme immediately to prevent flashing
+        (function () {
+            const mode = localStorage.getItem('theme-mode') || 'light';
+            const theme = localStorage.getItem('theme-color') || 'default';
+
+            // Apply light/dark mode
+            if (mode === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+
+            // Apply color theme
+            document.documentElement.classList.add('theme-' + theme);
+        })();
+    </script>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>User Dashboard | DebugAI</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+
+    <style>
+        :root {
+            --primary: #2c7b7d;
+        }
+
+        .theme-default {
+            --primary: #2c7b7d;
+        }
+
+        .theme-ocean {
+            --primary: #3b82f6;
+        }
+
+        .theme-forest {
+            --primary: #10b981;
+        }
+
+        .theme-sunset {
+            --primary: #f43f5e;
+        }
+
+        .theme-midnight {
+            --primary: #6366f1;
+        }
+
+        /* Handle dark mode color shifts if needed */
+        .dark {
+            /* Variable overrides for dark mode can go here */
+            --bg-offset: #1f2937;
+        }
+    </style>
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "var(--primary)",
+                        "background-light": "#ffffff",
+                        "background-dark": "#1a1f23",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        /* Sliding animation */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            to {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+        }
+
+        .slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .slide-out {
+            animation: slideOut 0.5s ease-out;
+        }
+
+        /* Typing cursor */
+        .typing-cursor::after {
+            content: '|';
+            animation: blink 1s infinite;
+            margin-left: 4px;
+            color: #2c7b7d;
+        }
+
+        @keyframes blink {
+
+            0%,
+            50% {
+                opacity: 1;
+            }
+
+            51%,
+            100% {
+                opacity: 0;
+            }
+        }
+
+        /* Pulse dot animation */
+        @keyframes pulse-scale {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.2);
+                opacity: 0.8;
+            }
+        }
+
+        .pulse-dot {
+            animation: pulse-scale 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+    <div class="flex min-h-screen">
+        <!-- Sidebar Navigation -->
+        <aside
+            class="w-64 border-r border-slate-200 dark:border-slate-800 flex flex-col fixed h-full bg-background-light dark:bg-background-dark">
+            <div class="p-6 flex items-center gap-3">
+                <div class="bg-primary p-1.5 rounded-lg text-white">
+                    <span class="material-symbols-outlined text-2xl">terminal</span>
+                </div>
+                <h2 class="text-xl font-bold tracking-tight">DebugAI</h2>
+            </div>
+
+            {% if request.user.user_type == 'Customer' %}
+            <nav class="flex-1 px-4 space-y-1">
+                <a href="/dashboard/"
+                    class="group relative flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-300 cursor-pointer overflow-hidden decoration-none">
+
+                    <div
+                        class="absolute left-[-25px] opacity-0 group-hover:left-2 group-hover:opacity-100 transition-all duration-300 flex items-center">
+                        <svg width="22" height="22" viewBox="0 0 24 24" class="text-primary pusher-micro">
+                            <circle cx="12" cy="6" r="2" fill="currentColor" />
+                            <path d="M12 8 L10 14 M11 10 L16 11 M10 14 L8 20 M10 14 L12 20" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" />
+                        </svg>
+                    </div>
+
+                    <span
+                        class="material-symbols-outlined transition-transform duration-300 group-hover:translate-x-10 group-hover:opacity-0 text-slate-500 dark:text-slate-400">
+                        home
+                    </span>
+
+                    <p
+                        class="text-sm font-medium transition-transform duration-300 group-hover:translate-x-7 group-hover:text-primary text-slate-700 dark:text-slate-300">
+                        Dashboard
+                    </p>
+
+                    <style>
+                        /* Adds a 'straining' wiggle effect to the character on hover */
+                        .group:hover .pusher-micro {
+                            animation: push-jitter 0.4s ease-in-out infinite alternate;
+                        }
+
+                        @keyframes push-jitter {
+                            from {
+                                transform: translateX(0);
+                            }
+
+                            to {
+                                transform: translateX(2px);
+                            }
+                        }
+                    </style>
+                </a>
+                <a href="/debugger/"
+                    class="group relative flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-300 cursor-pointer overflow-hidden decoration-none">
+
+                    <div
+                        class="absolute left-[-25px] opacity-0 group-hover:left-2 group-hover:opacity-100 transition-all duration-300 flex items-center">
+                        <svg width="22" height="22" viewBox="0 0 24 24" class="text-primary pusher-micro">
+                            <circle cx="12" cy="6" r="2" fill="currentColor" />
+                            <path d="M12 8 L10 14 M11 10 L16 11 M10 14 L8 20 M10 14 L12 20" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" />
+                        </svg>
+                    </div>
+
+                    <span
+                        class="material-symbols-outlined transition-transform duration-300 group-hover:translate-x-10 group-hover:opacity-0 text-slate-500 dark:text-slate-400">
+                        bug_report
+                    </span>
+
+                    <p
+                        class="text-sm font-medium transition-transform duration-300 group-hover:translate-x-7 group-hover:text-primary text-slate-700 dark:text-slate-300">
+                        Debugger
+                    </p>
+
+                    <style>
+                        /* Adds a 'straining' wiggle effect to the character on hover */
+                        .group:hover .pusher-micro {
+                            animation: push-jitter 0.4s ease-in-out infinite alternate;
+                        }
+
+                        @keyframes push-jitter {
+                            from {
+                                transform: translateX(0);
+                            }
+
+                            to {
+                                transform: translateX(2px);
+                            }
+                        }
+                    </style>
+                </a>
+
+                <a href="/coding-assistant/"
+                    class="group relative flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-300 cursor-pointer overflow-hidden decoration-none">
+
+                    <div
+                        class="absolute left-[-25px] opacity-0 group-hover:left-2 group-hover:opacity-100 transition-all duration-300 flex items-center">
+                        <svg width="22" height="22" viewBox="0 0 24 24" class="text-primary pusher-micro">
+                            <circle cx="12" cy="6" r="2" fill="currentColor" />
+                            <path d="M12 8 L10 14 M11 10 L16 11 M10 14 L8 20 M10 14 L12 20" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" />
+                        </svg>
+                    </div>
+
+                    <span
+                        class="material-symbols-outlined transition-transform duration-300 group-hover:translate-x-10 group-hover:opacity-0 text-slate-500 dark:text-slate-400">
+                        code
+                    </span>
+
+                    <p
+                        class="text-sm font-medium transition-transform duration-300 group-hover:translate-x-7 group-hover:text-primary text-slate-700 dark:text-slate-300">
+                        Coding Agent
+                    </p>
+
+                    <style>
+                        /* Adds a 'straining' wiggle effect to the character on hover */
+                        .group:hover .pusher-micro {
+                            animation: push-jitter 0.4s ease-in-out infinite alternate;
+                        }
+
+                        @keyframes push-jitter {
+                            from {
+                                transform: translateX(0);
+                            }
+
+                            to {
+                                transform: translateX(2px);
+                            }
+                        }
+                    </style>
+                </a>
+
+
+                <a href="/chats/"
+                    class="group relative flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-300 cursor-pointer overflow-hidden decoration-none">
+
+                    <div
+                        class="absolute left-[-25px] opacity-0 group-hover:left-2 group-hover:opacity-100 transition-all duration-300 flex items-center">
+                        <svg width="22" height="22" viewBox="0 0 24 24" class="text-primary pusher-micro">
+                            <circle cx="12" cy="6" r="2" fill="currentColor" />
+                            <path d="M12 8 L10 14 M11 10 L16 11 M10 14 L8 20 M10 14 L12 20" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" />
+                        </svg>
+                    </div>
+
+                    <span
+                        class="material-symbols-outlined transition-transform duration-300 group-hover:translate-x-10 group-hover:opacity-0 text-slate-500 dark:text-slate-400">
+                        history
+                    </span>
+
+                    <p
+                        class="text-sm font-medium transition-transform duration-300 group-hover:translate-x-7 group-hover:text-primary text-slate-700 dark:text-slate-300">
+                        History
+                    </p>
+
+                    <style>
+                        /* Adds a 'straining' wiggle effect to the character on hover */
+                        .group:hover .pusher-micro {
+                            animation: push-jitter 0.4s ease-in-out infinite alternate;
+                        }
+
+                        @keyframes push-jitter {
+                            from {
+                                transform: translateX(0);
+                            }
+
+                            to {
+                                transform: translateX(2px);
+                            }
+                        }
+                    </style>
+                </a>
+
+
+
+                <a href="{% url 'users:settings' %}"
+                    class="group relative flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-300 cursor-pointer overflow-hidden decoration-none">
+                    <span
+                        class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary transition-colors">settings</span>
+                    <p
+                        class="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-primary transition-colors">
+                        Settings</p>
+                </a>
+
+
+            </nav>
+
+            {% else %}
+            <nav class="flex-1 px-4 space-y-1">
+                <a href="/admin-dashboard/"
+                    class="group relative flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-300 cursor-pointer overflow-hidden decoration-none">
+
+                    <div
+                        class="absolute left-[-25px] opacity-0 group-hover:left-2 group-hover:opacity-100 transition-all duration-300 flex items-center">
+                        <svg width="22" height="22" viewBox="0 0 24 24" class="text-primary pusher-micro">
+                            <circle cx="12" cy="6" r="2" fill="currentColor" />
+                            <path d="M12 8 L10 14 M11 10 L16 11 M10 14 L8 20 M10 14 L12 20" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" />
+                        </svg>
+                    </div>
+
+                    <span
+                        class="material-symbols-outlined transition-transform duration-300 group-hover:translate-x-10 group-hover:opacity-0 text-slate-500 dark:text-slate-400">
+
+
+                    </span>
+
+                    <p
+                        class="text-sm font-medium transition-transform duration-300 group-hover:translate-x-7 group-hover:text-primary text-slate-700 dark:text-slate-300">
+                        Admin-Dashboard
+                    </p>
+
+                    <style>
+                        /* Adds a 'straining' wiggle effect to the character on hover */
+                        .group:hover .pusher-micro {
+                            animation: push-jitter 0.4s ease-in-out infinite alternate;
+                        }
+
+                        @keyframes push-jitter {
+                            from {
+                                transform: translateX(0);
+                            }
+
+                            to {
+                                transform: translateX(2px);
+                            }
+                        }
+                    </style>
+                </a>
+
+                <a href="/admin-user-management/"
+                    class="group relative flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-300 cursor-pointer overflow-hidden decoration-none">
+
+                    <div
+                        class="absolute left-[-25px] opacity-0 group-hover:left-2 group-hover:opacity-100 transition-all duration-300 flex items-center">
+                        <svg width="22" height="22" viewBox="0 0 24 24" class="text-primary pusher-micro">
+                            <circle cx="12" cy="6" r="2" fill="currentColor" />
+                            <path d="M12 8 L10 14 M11 10 L16 11 M10 14 L8 20 M10 14 L12 20" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" />
+                        </svg>
+                    </div>
+
+                    <span
+                        class="material-symbols-outlined transition-transform duration-300 group-hover:translate-x-10 group-hover:opacity-0 text-slate-500 dark:text-slate-400">
+
+
+                    </span>
+
+                    <p
+                        class="text-sm font-medium transition-transform duration-300 group-hover:translate-x-7 group-hover:text-primary text-slate-700 dark:text-slate-300">
+                        Users
+                    </p>
+
+                    <style>
+                        /* Adds a 'straining' wiggle effect to the character on hover */
+                        .group:hover .pusher-micro {
+                            animation: push-jitter 0.4s ease-in-out infinite alternate;
+                        }
+
+                        @keyframes push-jitter {
+                            from {
+                                transform: translateX(0);
+                            }
+
+                            to {
+                                transform: translateX(2px);
+                            }
+                        }
+                    </style>
+                </a>
+
+
+
+
+
+            </nav>
+            {% endif %}
+            <!-- Theme Selection Menu -->
+            <div class="px-4 mb-4 relative">
+                <button onclick="toggleThemeMenu()" id="theme-menu-btn"
+                    class="w-full bg-slate-100 dark:bg-slate-800 rounded-xl p-3 flex items-center justify-between hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors group">
+                    <div class="flex items-center gap-3">
+                        <span
+                            class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary transition-colors">palette</span>
+                        <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Appearance</span>
+                    </div>
+                    <span class="material-symbols-outlined text-slate-400 text-sm transition-transform duration-300"
+                        id="theme-chevron">expand_more</span>
+                </button>
+
+                <!-- Theme Popover -->
+                <div id="theme-popover"
+                    class="hidden absolute bottom-full left-4 right-4 mb-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-4 z-50 slide-in">
+                    <div class="space-y-4">
+                        <!-- Mode Switch -->
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Display Mode
+                            </p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="setMode('light')" id="mode-light"
+                                    class="flex flex-col items-center gap-1.5 p-2 rounded-lg border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
+                                    <span class="material-symbols-outlined text-xl">light_mode</span>
+                                    <span class="text-[10px] font-medium">Light</span>
+                                </button>
+                                <button onclick="setMode('dark')" id="mode-dark"
+                                    class="flex flex-col items-center gap-1.5 p-2 rounded-lg border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
+                                    <span class="material-symbols-outlined text-xl">dark_mode</span>
+                                    <span class="text-[10px] font-medium">Dark</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Color Themes -->
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Accent Color
+                            </p>
+                            <div class="grid grid-cols-5 gap-2">
+                                <button onclick="setThemeColor('default')" title="Default"
+                                    class="w-8 h-8 rounded-full bg-[#2c7b7d] border-2 border-transparent hover:scale-110 transition-transform"
+                                    id="color-default"></button>
+                                <button onclick="setThemeColor('ocean')" title="Ocean"
+                                    class="w-8 h-8 rounded-full bg-[#3b82f6] border-2 border-transparent hover:scale-110 transition-transform"
+                                    id="color-ocean"></button>
+                                <button onclick="setThemeColor('forest')" title="Forest"
+                                    class="w-8 h-8 rounded-full bg-[#10b981] border-2 border-transparent hover:scale-110 transition-transform"
+                                    id="color-forest"></button>
+                                <button onclick="setThemeColor('sunset')" title="Sunset"
+                                    class="w-8 h-8 rounded-full bg-[#f43f5e] border-2 border-transparent hover:scale-110 transition-transform"
+                                    id="color-sunset"></button>
+                                <button onclick="setThemeColor('midnight')" title="Midnight"
+                                    class="w-8 h-8 rounded-full bg-[#6366f1] border-2 border-transparent hover:scale-110 transition-transform"
+                                    id="color-midnight"></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+                        <div class="p-4 mt-auto">
+
+
+                <button onclick="#"
+                    class="w-full bg-blue-500 text-white font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+                    
+                    <span> Welcome {{request.user.name}}</span>
+                </button>
+            </div>
+
+            <div class="p-4 mt-auto">
+
+
+                <button onclick="showLogoutPopup()"
+                    class="w-full bg-red-500 text-white font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+                    <span class="material-symbols-outlined text-lg">logout</span>
+                    <span>Logout</span>
+                </button>
+            </div>
+
+            <!-- Logout Popup Modal -->
+            <div id="logoutPopup"
+                class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50">
+                <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="bg-red-100 dark:bg-red-900/30 p-3 rounded-full">
+                            <span class="material-symbols-outlined text-red-600 dark:text-red-400">logout</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 dark:text-white">Confirm Logout</h3>
+                    </div>
+                    <p class="text-slate-600 dark:text-slate-400 mb-6">Are you sure you want to logout? You'll need to
+                        sign in again to access your account.</p>
+                    <div class="flex gap-3">
+                        <button onclick="hideLogoutPopup()"
+                            class="flex-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold py-2.5 rounded-lg hover:opacity-90 transition-opacity">
+                            Cancel
+                        </button>
+                        <form action="{% url 'users:logout' %}" method="post" class="flex-1">
+                            {% csrf_token %}
+                            <button type="submit"
+                                class="w-full bg-red-500 text-white font-bold py-2.5 rounded-lg hover:opacity-90 transition-opacity">
+                                Logout
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </aside>
+        <!-- Main Content Area -->
+        <main class="ml-64 flex-1 flex flex-col">
+            <!-- Header -->
+            <header
+                class="h-16 border-b border-slate-200 dark:border-slate-800 flex items-center sticky top-0 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md z-10 overflow-hidden">
+
+                <div class="push-unit flex items-center">
+                    <svg width="40" height="40" viewBox="0 0 24 24" class="text-primary pusher-character">
+                        <circle cx="12" cy="6" r="2" fill="currentColor" class="push-bob" />
+                        <path d="M12 8 L10 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                        <path d="M11 10 L16 11" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            class="push-effort" />
+                        <path d="M10 14 L8 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            class="leg leg-1" />
+                        <path d="M10 14 L12 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            class="leg leg-2" />
+                    </svg>
+
+                    <div
+                        class="flex flex-col border-l-2 border-primary/30 pl-3 ml-[-2px] bg-gradient-to-r from-primary/5 to-transparent pr-8 py-1">
+                        <span class="text-[9px] font-black text-primary uppercase tracking-tighter">AI Heavy
+                            Lifting</span>
+                        <span id="animated-text"
+                            class="text-xs text-slate-600 dark:text-slate-300 font-bold whitespace-nowrap">Moving data
+                            blocks...</span>
+                    </div>
+                </div>
+
+                <style>
+                    /* Main Movement: Pushes the whole unit across */
+                    .push-unit {
+                        position: absolute;
+                        left: -200px;
+                        animation: push-sequence 12s linear infinite;
+                    }
+
+                    @keyframes push-sequence {
+                        0% {
+                            transform: translateX(0);
+                        }
+
+                        100% {
+                            transform: translateX(calc(100vw + 200px));
+                        }
+                    }
+
+                    /* Leg Gait: Simulates heavy stepping */
+                    .leg {
+                        transform-origin: 10px 14px;
+                        animation: gait 0.8s ease-in-out infinite alternate;
+                    }
+
+                    .leg-2 {
+                        animation-delay: -0.4s;
+                    }
+
+                    @keyframes gait {
+                        from {
+                            transform: rotate(-20deg);
+                        }
+
+                        to {
+                            transform: rotate(30deg);
+                        }
+                    }
+
+                    /* Pushing Effort: Slight jitter to show "weight" */
+                    .push-effort {
+                        animation: shove 0.4s ease-in-out infinite alternate;
+                    }
+
+                    @keyframes shove {
+                        from {
+                            transform: translateX(0);
+                        }
+
+                        to {
+                            transform: translateX(1px);
+                        }
+                    }
+
+                    /* Body Bobbing */
+                    .push-bob {
+                        animation: bob-heavy 0.8s ease-in-out infinite alternate;
+                    }
+
+                    @keyframes bob-heavy {
+                        from {
+                            transform: translateY(0);
+                        }
+
+                        to {
+                            transform: translateY(1px);
+                        }
+                    }
+                </style>
+            </header>
+            <!-- Dashboard Content -->
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <script>
+
+        function toggleThemeMenu() {
+            const popover = document.getElementById('theme-popover');
+            const chevron = document.getElementById('theme-chevron');
+            const isHidden = popover.classList.contains('hidden');
+
+            if (isHidden) {
+                popover.classList.remove('hidden');
+                popover.classList.add('block');
+                chevron.style.transform = 'rotate(180deg)';
+            } else {
+                popover.classList.add('hidden');
+                popover.classList.remove('block');
+                chevron.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        function setMode(mode) {
+            if (mode === 'dark') {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme-mode', 'dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme-mode', 'light');
+            }
+            updateModeUI(mode);
+        }
+
+        function setThemeColor(color) {
+            // Remove old theme classes
+            const themes = ['theme-default', 'theme-ocean', 'theme-forest', 'theme-sunset', 'theme-midnight'];
+            themes.forEach(t => document.documentElement.classList.remove(t));
+
+            document.documentElement.classList.add('theme-' + color);
+            localStorage.setItem('theme-color', color);
+            updateColorUI(color);
+        }
+
+        function updateModeUI(mode) {
+            const lightBtn = document.getElementById('mode-light');
+            const darkBtn = document.getElementById('mode-dark');
+
+            [lightBtn, darkBtn].forEach(btn => {
+                btn.classList.remove('bg-primary', 'text-white', 'border-primary');
+                btn.classList.add('border-slate-100', 'dark:border-slate-800');
+            });
+
+            const activeBtn = mode === 'dark' ? darkBtn : lightBtn;
+            activeBtn.classList.add('bg-primary/10', 'text-primary', 'border-primary');
+            activeBtn.classList.remove('border-slate-100', 'dark:border-slate-800');
+        }
+
+        function updateColorUI(color) {
+            const colors = ['default', 'ocean', 'forest', 'sunset', 'midnight'];
+            colors.forEach(c => {
+                const btn = document.getElementById('color-' + c);
+                btn.classList.remove('ring-2', 'ring-offset-2', 'ring-primary');
+            });
+
+            const activeBtn = document.getElementById('color-' + color);
+            activeBtn.classList.add('ring-2', 'ring-offset-2', 'ring-primary');
+        }
+
+        // Initialize UI state
+        updateModeUI(localStorage.getItem('theme-mode') || 'light');
+        updateColorUI(localStorage.getItem('theme-color') || 'default');
+
+        // Close theme menu when clicking outside
+        document.addEventListener('click', function (e) {
+            const menu = document.getElementById('theme-popover');
+            const btn = document.getElementById('theme-menu-btn');
+            if (!menu.contains(e.target) && !btn.contains(e.target)) {
+                menu.classList.add('hidden');
+                document.getElementById('theme-chevron').style.transform = 'rotate(0deg)';
+            }
+        });
+
+        function showLogoutPopup() {
+            const popup = document.getElementById('logoutPopup');
+            popup.classList.remove('hidden');
+            popup.classList.add('flex');
+        }
+
+        function hideLogoutPopup() {
+            const popup = document.getElementById('logoutPopup');
+            popup.classList.add('hidden');
+            popup.classList.remove('flex');
+        }
+
+        // Close popup when clicking outside
+        document.getElementById('logoutPopup')?.addEventListener('click', function (e) {
+            if (e.target === this) {
+                hideLogoutPopup();
+            }
+        });
+        // Animated status messages
+        const messages = [
+            "Analyzing your code...",
+            "Scanning for bugs...",
+            "Checking security vulnerabilities...",
+            "Optimizing performance...",
+            "Ready to debug!",
+            "AI assistant online...",
+            "Processing requests...",
+            "Code analysis ready..."
+        ];
+
+        let currentIndex = 0;
+        const textElement = document.getElementById('animated-text');
+
+        function changeText() {
+            // Add slide-out animation
+            textElement.classList.add('slide-out');
+
+            setTimeout(() => {
+                // Change text
+                currentIndex = (currentIndex + 1) % messages.length;
+                textElement.textContent = messages[currentIndex];
+
+                // Remove slide-out and add slide-in
+                textElement.classList.remove('slide-out');
+                textElement.classList.add('slide-in');
+
+                setTimeout(() => {
+                    textElement.classList.remove('slide-in');
+                }, 500);
+            }, 500);
+        }
+
+        // Change text every 3 seconds
+        setInterval(changeText, 3000);
+    </script>
+</body>
+
+</html>

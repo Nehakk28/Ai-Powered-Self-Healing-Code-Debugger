@@ -1,0 +1,454 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+<div class="min-h-screen bg-slate-50 dark:bg-slate-900">
+
+    <!-- Top Navigation Bar -->
+    <nav class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+
+                <!-- Logo & Brand -->
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-teal-600 rounded-lg flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white">admin_panel_settings</span>
+                    </div>
+                    <div class="hidden sm:block">
+                        <h2 class="font-bold text-slate-800 dark:text-slate-100">AI Debugger Admin</h2>
+                        <p class="text-xs text-slate-500">User Management</p>
+                    </div>
+                </div>
+
+                <!-- Navigation Links -->
+                <div class="hidden md:flex items-center gap-1">
+  {% if request.user.user_type == 'admin'%}
+
+                                <a href="{% url 'users:admin_dashboard' %}"
+                    class="flex items-center gap-2 px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg font-medium">
+                    <span class="material-symbols-outlined">dashboard</span>
+                    <span>Dashboard</span>
+                </a>
+
+
+                {% else %}
+                <a href="{% url 'users:dashboard' %}"
+                    class="flex items-center gap-2 px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg font-medium">
+                    <span class="material-symbols-outlined">dashboard</span>
+                    <span>Dashboard</span>
+                </a>
+
+                {% endif %}
+
+                    <a href="{% url 'users:user_management' %}"
+                        class="flex items-center gap-2 px-4 py-2 bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-400 rounded-lg font-medium transition-colors">
+                        <span class="material-symbols-outlined text-xl">group</span>
+                        <span>Users</span>
+                    </a>
+{% comment %} 
+                    <a href="#"
+                        class="flex items-center gap-2 px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg font-medium transition-colors">
+                        <span class="material-symbols-outlined text-xl">bar_chart</span>
+                        <span>Analytics</span>
+                    </a> {% endcomment %}
+
+                    {% comment %} <a href="#"
+                        class="flex items-center gap-2 px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg font-medium transition-colors">
+                        <span class="material-symbols-outlined text-xl">settings</span>
+                        <span>Settings</span>
+                    </a> {% endcomment %}
+                </div>
+
+                <!-- Right Side Actions -->
+                <div class="flex items-center gap-3">
+                    <!-- User Profile -->
+                    <div class="flex items-center gap-2 pl-3 border-l border-slate-200 dark:border-slate-700">
+                        <div class="w-9 h-9 bg-red-500 rounded-full flex items-center justify-center">
+                            <span class="font-bold text-white text-sm">{{ request.user.email.0|upper }}</span>
+                        </div>
+                        <div class="hidden lg:block">
+                            <p class="text-sm font-medium text-slate-800 dark:text-slate-100">
+                                {{ request.user.get_full_name|default:request.user.email|truncatewords:1 }}
+                            </p>
+                            <p class="text-xs text-red-600">Admin</p>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Menu Button -->
+                    <button id="mobile-menu-btn"
+                        class="md:hidden w-10 h-10 flex items-center justify-center text-slate-600 dark:text-slate-400">
+                        <span class="material-symbols-outlined">menu</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu"
+            class="hidden md:hidden border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+            <div class="px-4 py-3 space-y-1">
+
+             
+
+                {% if request.user.user_type == 'admin'%}
+
+                                <a href="{% url 'users:admin_dashboard' %}"
+                    class="flex items-center gap-2 px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg font-medium">
+                    <span class="material-symbols-outlined">dashboard</span>
+                    <span>Dashboard</span>
+                </a>
+
+
+                {% else %}
+                <a href="{% url 'users:dashboard' %}"
+                    class="flex items-center gap-2 px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg font-medium">
+                    <span class="material-symbols-outlined">dashboard</span>
+                    <span>Dashboard</span>
+                </a>
+
+                {% endif %}
+                <a href="{% url 'users:user_management' %}"
+                    class="flex items-center gap-2 px-4 py-2 bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-400 rounded-lg font-medium">
+                    <span class="material-symbols-outlined">group</span>
+                    <span>Users</span>
+                </a>
+                <a href="#"
+                    class="flex items-center gap-2 px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg font-medium">
+                    <span class="material-symbols-outlined">bar_chart</span>
+                    <span>Analytics</span>
+                </a>
+                <a href="#"
+                    class="flex items-center gap-2 px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg font-medium">
+                    <span class="material-symbols-outlined">settings</span>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+
+        <!-- Header with Stats -->
+        <div class="mb-6 sm:mb-8">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100">User Management</h1>
+                    <p class="text-slate-600 dark:text-slate-400 mt-1 text-sm sm:text-base">
+                        Manage all system users and their access
+                    </p>
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="relative">
+                    <input type="text" id="searchInput" placeholder="Search users..." 
+                        class="w-full sm:w-64 pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
+                    <span class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 text-lg">search</span>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div class="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-1">Total Users</p>
+                    <p class="text-2xl font-bold text-slate-900 dark:text-slate-100">{{ total_users }}</p>
+                </div>
+                <div class="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-1">Active Users</p>
+                    <p class="text-2xl font-bold text-green-600">{{ active_users }}</p>
+                </div>
+                <div class="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-1">Blocked Users</p>
+                    <p class="text-2xl font-bold text-red-600">{{ blocked_users }}</p>
+                </div>
+                <div class="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-1">New (30 days)</p>
+                    <p class="text-2xl font-bold text-blue-600">{{ new_users_30days }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700 mb-6">
+            <div class="flex flex-wrap gap-3">
+                <button onclick="filterUsers('all')" class="filter-btn active px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400">
+                    All Users
+                </button>
+                <button onclick="filterUsers('active')" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600">
+                    Active
+                </button>
+                <button onclick="filterUsers('blocked')" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600">
+                    Blocked
+                </button>
+                <button onclick="filterUsers('admin')" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600">
+                    Admins
+                </button>
+                <button onclick="filterUsers('customer')" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600">
+                    Customers
+                </button>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">
+                        <tr>
+                            <th class="text-left py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-500">User</th>
+                            <th class="text-left py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-500">Type</th>
+                            <th class="text-center py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-500">Sessions</th>
+                            <th class="text-center py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-500">Messages</th>
+                            <th class="text-left py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-500">Joined</th>
+                            <th class="text-center py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-500">Status</th>
+                            <th class="text-center py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-500">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        {% for user in users %}
+                        <tr class="user-row border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                            data-status="{% if user.is_active %}active{% else %}blocked{% endif %}"
+                            data-type="{{ user.user_type|lower }}"
+                            data-email="{{ user.email|lower }}">
+                            <!-- User Info -->
+                            <td class="py-4 px-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-teal-100 dark:bg-teal-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <span class="text-sm font-bold text-teal-600 dark:text-teal-400">{{ user.email.0|upper }}</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-slate-900 dark:text-slate-100">
+                                            {% if user.name %}{{ user.name }}{% else %}{{ user.email|truncatechars:20 }}{% endif %}
+                                        </p>
+                                        <p class="text-xs text-slate-500">{{ user.email }}</p>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <!-- User Type -->
+                            <td class="py-4 px-4">
+                                {% if user.user_type == 'ADMIN' %}
+                                <span class="inline-flex items-center gap-1 px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs font-semibold rounded-full">
+                                    <span class="material-symbols-outlined text-sm">admin_panel_settings</span>
+                                    Admin
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-semibold rounded-full">
+                                    <span class="material-symbols-outlined text-sm">person</span>
+                                    Customer
+                                </span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Sessions -->
+                            <td class="py-4 px-4 text-center">
+                                <span class="inline-block px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-sm font-semibold rounded-full">
+                                    {{ user.session_count }}
+                                </span>
+                            </td>
+
+                            <!-- Messages -->
+                            <td class="py-4 px-4 text-center">
+                                <span class="inline-block px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm font-semibold rounded-full">
+                                    {{ user.message_count }}
+                                </span>
+                            </td>
+
+                            <!-- Joined Date -->
+                            <td class="py-4 px-4">
+                                <p class="text-sm text-slate-600 dark:text-slate-400">{{ user.date_joined|date:"M d, Y" }}</p>
+                                <p class="text-xs text-slate-500">{{ user.date_joined|timesince }} ago</p>
+                            </td>
+
+                            <!-- Status -->
+                            <td class="py-4 px-4 text-center">
+                                {% if user.is_active %}
+                                <span class="inline-flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-semibold rounded-full">
+                                    <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                                    Active
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center gap-1 px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs font-semibold rounded-full">
+                                    <span class="w-2 h-2 bg-red-500 rounded-full"></span>
+                                    Blocked
+                                </span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Actions -->
+                            <td class="py-4 px-4">
+                                <div class="flex items-center justify-center gap-2">
+                                    {% if user.id != request.user.id %}
+                                        {% if user.is_active %}
+                                        <button onclick="toggleUserStatus({{ user.id }}, 'block')" 
+                                            class="px-3 py-1.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs font-semibold rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors">
+                                            Block
+                                        </button>
+                                        {% else %}
+                                        <button onclick="toggleUserStatus({{ user.id }}, 'unblock')" 
+                                            class="px-3 py-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-semibold rounded-lg hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors">
+                                            Unblock
+                                        </button>
+                                        {% endif %}
+                                        <button onclick="viewUserDetails({{ user.id }})" 
+                                            class="px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-semibold rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors">
+                                            View
+                                        </button>
+                                    {% else %}
+                                    <span class="text-xs text-slate-400 italic">You</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="py-12 text-center text-slate-500">
+                                <span class="material-symbols-outlined text-4xl mb-2 block text-slate-300">group_off</span>
+                                No users found
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Block/Unblock Confirmation Modal -->
+<div id="confirmModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
+        <div class="flex items-center gap-3 mb-4">
+            <div id="modalIcon" class="bg-red-100 dark:bg-red-900/30 p-3 rounded-full">
+                <span class="material-symbols-outlined text-red-600 dark:text-red-400">block</span>
+            </div>
+            <h3 id="modalTitle" class="text-xl font-bold text-slate-900 dark:text-white">Confirm Action</h3>
+        </div>
+        <p id="modalMessage" class="text-slate-600 dark:text-slate-400 mb-6"></p>
+        <div class="flex gap-3">
+            <button onclick="closeModal()" 
+                class="flex-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold py-2.5 rounded-lg hover:opacity-90 transition-opacity">
+                Cancel
+            </button>
+            <form id="statusForm" method="post" class="flex-1">
+                {% csrf_token %}
+                <input type="hidden" name="user_id" id="modalUserId">
+                <input type="hidden" name="action" id="modalAction">
+                <button type="submit" id="modalConfirmBtn"
+                    class="w-full bg-red-500 text-white font-bold py-2.5 rounded-lg hover:opacity-90 transition-opacity">
+                    Confirm
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Mobile menu toggle
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+
+    if (mobileMenuBtn && mobileMenu) {
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+    }
+
+    // Search functionality
+    document.getElementById('searchInput').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const rows = document.querySelectorAll('.user-row');
+        
+        rows.forEach(row => {
+            const email = row.dataset.email;
+            if (email.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+
+    // Filter functionality
+    function filterUsers(filter) {
+        const rows = document.querySelectorAll('.user-row');
+        const buttons = document.querySelectorAll('.filter-btn');
+        
+        // Update button styles
+        buttons.forEach(btn => {
+            btn.classList.remove('bg-teal-100', 'dark:bg-teal-900/30', 'text-teal-700', 'dark:text-teal-400', 'active');
+            btn.classList.add('bg-slate-100', 'dark:bg-slate-700', 'text-slate-700', 'dark:text-slate-300');
+        });
+        event.target.classList.remove('bg-slate-100', 'dark:bg-slate-700', 'text-slate-700', 'dark:text-slate-300');
+        event.target.classList.add('bg-teal-100', 'dark:bg-teal-900/30', 'text-teal-700', 'dark:text-teal-400', 'active');
+        
+        // Filter rows
+        rows.forEach(row => {
+            if (filter === 'all') {
+                row.style.display = '';
+            } else if (filter === 'active' && row.dataset.status === 'active') {
+                row.style.display = '';
+            } else if (filter === 'blocked' && row.dataset.status === 'blocked') {
+                row.style.display = '';
+            } else if (filter === 'admin' && row.dataset.type === 'admin') {
+                row.style.display = '';
+            } else if (filter === 'customer' && row.dataset.type === 'customer') {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    // Toggle user status
+    function toggleUserStatus(userId, action) {
+        const modal = document.getElementById('confirmModal');
+        const modalIcon = document.getElementById('modalIcon');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+        const form = document.getElementById('statusForm');
+        
+        document.getElementById('modalUserId').value = userId;
+        document.getElementById('modalAction').value = action;
+        
+        if (action === 'block') {
+            modalIcon.innerHTML = '<span class="material-symbols-outlined text-red-600 dark:text-red-400">block</span>';
+            modalIcon.className = 'bg-red-100 dark:bg-red-900/30 p-3 rounded-full';
+            modalTitle.textContent = 'Block User';
+            modalMessage.textContent = 'Are you sure you want to block this user? They will no longer be able to access the system.';
+            modalConfirmBtn.textContent = 'Block User';
+            modalConfirmBtn.className = 'w-full bg-red-500 text-white font-bold py-2.5 rounded-lg hover:opacity-90 transition-opacity';
+        } else {
+            modalIcon.innerHTML = '<span class="material-symbols-outlined text-green-600 dark:text-green-400">check_circle</span>';
+            modalIcon.className = 'bg-green-100 dark:bg-green-900/30 p-3 rounded-full';
+            modalTitle.textContent = 'Unblock User';
+            modalMessage.textContent = 'Are you sure you want to unblock this user? They will regain access to the system.';
+            modalConfirmBtn.textContent = 'Unblock User';
+            modalConfirmBtn.className = 'w-full bg-green-500 text-white font-bold py-2.5 rounded-lg hover:opacity-90 transition-opacity';
+        }
+        
+        form.action = "{% url 'users:toggle_user_status' %}";
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('confirmModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    // View user details
+    function viewUserDetails(userId) {
+        window.location.href = `/admin-user-detail/${userId}/`;
+    }
+
+    // Close modal on outside click
+    document.getElementById('confirmModal')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeModal();
+        }
+    });
+</script>
+{% endblock %}

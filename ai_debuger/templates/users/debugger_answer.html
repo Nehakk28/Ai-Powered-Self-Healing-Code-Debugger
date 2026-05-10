@@ -1,0 +1,828 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+
+<style>
+    /* Add to existing style block */
+@keyframes pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+#full-page-loader > div {
+    animation: slideUp 0.3s ease-out;
+}
+
+/* Optional: Add smooth transitions */
+.feedback-buttons {
+    transition: opacity 0.3s ease;
+}
+
+.feedback-thanks, .feedback-sorry {
+    transition: opacity 0.3s ease;
+}
+
+
+    #editor-container {
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
+        background: #1a1c1e;
+    }
+    
+    .monaco-editor {
+        padding-top: 10px;
+    }
+</style>
+<!-- Load Monaco Editor -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+<style>
+/* Robot Head Container */
+.robot-head {
+    width: 120px;
+    height: 100px;
+    background: #2d3135;
+    border: 4px solid #10b981;
+    border-radius: 20px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: bob 3s infinite ease-in-out;
+}
+
+/* Antennas */
+.robot-head::before {
+    content: '';
+    position: absolute;
+    top: -25px;
+    width: 4px;
+    height: 25px;
+    background: #10b981;
+}
+
+/* Antenna Light (Pulsing) */
+.antenna-tip {
+    position: absolute;
+    top: -35px;
+    width: 12px;
+    height: 12px;
+    background: #10b981;
+    border-radius: 50%;
+    box-shadow: 0 0 15px #10b981;
+    animation: pulse-light 1s infinite;
+}
+
+/* Eyes */
+.eyes-container {
+    display: flex;
+    gap: 20px;
+}
+
+.eye {
+    width: 15px;
+    height: 15px;
+    background: #10b981;
+    border-radius: 50%;
+    animation: blink 4s infinite;
+}
+
+/* Animations */
+@keyframes bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes blink {
+    0%, 90%, 100% { transform: scaleY(1); }
+    95% { transform: scaleY(0.1); }
+}
+
+@keyframes pulse-light {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.3); }
+}
+</style>
+<div class="flex h-screen bg-gray-50 dark:bg-[#1a1d1f] overflow-hidden">
+
+        <div id="full-page-loader" 
+         class="fixed inset-0 bg-black/70 dark:bg-black/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center hidden">
+        <div class="bg-white dark:bg-[#242628] rounded-2xl p-8 max-w-md mx-4 shadow-2xl animate-pulse">
+            <div class="flex flex-col items-center text-center">
+                <!-- Animated Spinner -->
+                <div class="relative mb-6">
+                    <div class="size-16 border-4 border-primary/20 rounded-full"></div>
+                    <div class="size-16 border-4 border-transparent border-t-primary rounded-full animate-spin absolute top-0 left-0"></div>
+                    <span class="material-symbols-outlined text-3xl text-primary absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                        psychology
+                    </span>
+                </div>
+                
+                <!-- Loading Text -->
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                    Taking you to AI Coding Agent
+                </h3>
+                <p class="text-gray-600 dark:text-gray-300 mb-4">
+                    Analyzing your feedback and preparing an improved solution...
+                </p>
+                
+                <!-- Progress Animation -->
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-2">
+                    <div class="bg-gradient-to-r from-primary to-purple-500 h-2 rounded-full animate-[pulse_1.5s_ease-in-out_infinite]"></div>
+                </div>
+                
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                    This may take a few moments
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="flex-1 flex flex-col min-w-0">
+
+        <!-- Editor Toolbar -->
+        <div
+            class="bg-white dark:bg-[#242628] border-b border-gray-200 dark:border-gray-800 px-6 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="relative group">
+                    <select id="language-select" name="language" form="debug-form"
+                        class="appearance-none flex items-center gap-2 px-4 pr-10 py-2 bg-gray-50 dark:bg-[#1a1d1f] border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium transition-all hover:border-primary outline-none cursor-pointer text-gray-700 dark:text-gray-300">
+                        <option value="python" {% if language == 'python' %}selected{% endif %}>Python</option>
+                        <option value="javascript" {% if language == 'javascript' %}selected{% endif %}>JavaScript</option>
+                        <option value="cpp" {% if language == 'cpp' %}selected{% endif %}>C++</option>
+                        <option value="java" {% if language == 'java' %}selected{% endif %}>Java</option>
+                        <option value="c" {% if language == 'c' %}selected{% endif %}>C</option>
+                        <option value="csharp" {% if language == 'csharp' %}selected{% endif %}>C#</option>
+                        <option value="go" {% if language == 'go' %}selected{% endif %}>Go</option>
+                        <option value="php" {% if language == 'php' %}selected{% endif %}>PHP</option>
+                    </select>
+                    <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-sm">
+                        expand_more
+                    </span>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="button" id="copy-btn"
+                    class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary transition-colors">
+                    <span class="material-symbols-outlined text-lg">content_copy</span>
+                    <span>Copy</span>
+                </button>
+                <button type="button" id="clear-btn"
+                    class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-red-500 transition-colors">
+                    <span class="material-symbols-outlined text-lg">delete</span>
+                    <span>Clear</span>
+                </button>
+                <div class="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2"></div>
+                <button type="submit" form="debug-form" id="debug-btn"
+                    class="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20 active:scale-95">
+                    <span class="material-symbols-outlined text-lg">bolt</span>
+                    <span>Analyze Code</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Split Pane: Editor + Chat Panel -->
+        <div class="flex-1 flex overflow-hidden bg-gray-50 dark:bg-[#1a1d1f]">
+
+            <!-- NEW SIMPLE Code Editor Pane -->
+            <form id="debug-form" method="POST" action=""
+                class="flex-1 flex flex-col border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-[#242628]">
+                {% csrf_token %}
+
+                <!-- Simple textarea with line numbers on the side -->
+                <div id="editor-container" class="flex-1 relative">
+                    <div id="robot-container" class="absolute inset-0 z-50 flex flex-col items-center justify-center transition-opacity duration-700 bg-[#1a1c1e]">
+                        <div class="robot-head">
+                            <div class="antenna-tip"></div>
+                            <div class="eyes-container">
+                                <div class="eye"></div>
+                                <div class="eye"></div>
+                            </div>
+                        </div>
+                        <div class="mt-8 text-center">
+                            <p class="font-mono text-emerald-500 text-sm tracking-tighter">
+                                <span class="opacity-50">></span> ROBOT_ENGINE_COMPILING...
+                            </p>
+                        </div>
+                    </div>
+                    <div id="monaco-editor" class="w-full h-full opacity-0 transition-opacity duration-700"></div>
+                </div>
+
+                <!-- Hidden element to store raw corrected code safely -->
+                <div id="raw-corrected-code" style="display: none;">{{ analysis.corrected_code|default:'' }}</div>
+                <textarea id="code-editor" name="code" style="display: none;">{{ code|default:'' }}</textarea>
+
+                <!-- Hidden Language Field removed (handled by dropdown) -->
+
+                <!-- Status Bar -->
+                <div
+                    class="h-10 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#1a1d1f] flex items-center justify-between px-4 text-[10px] font-mono text-gray-600 dark:text-gray-400">
+                    <div class="flex items-center gap-4">
+                        <span class="flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-xs text-primary">check_circle</span>
+                            <span id="editor-status">Ready</span>
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span id="cursor-position">Ln 1, Col 1</span>
+                        <span id="char-count">0 chars</span>
+                    </div>
+                </div>
+            </form>
+
+            <!-- AI Chat Panel -->
+            <div class="w-full md:w-[420px] bg-white dark:bg-[#242628] flex flex-col">
+                <!-- Chat Header -->
+                <div
+                    class="border-b border-gray-200 dark:border-gray-800 px-6 py-4 bg-gradient-to-r from-primary/5 to-transparent">
+                    <div class="flex items-center justify-between w-full">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="size-10 bg-gradient-to-br from-primary to-primary/70 rounded-full flex items-center justify-center">
+                                <span class="material-symbols-outlined text-white text-xl">psychology</span>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-bold text-gray-900 dark:text-white">AI Code Assistant</h3>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                                    <span class="size-2 bg-green-500 rounded-full animate-pulse"></span>
+                                    Online
+                                </p>
+                            </div>
+                        </div>
+                        <a href="{% url 'users:clear_chat' %}"
+                            class="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-purple-500 to-primary hover:from-purple-600 hover:to-primary/90 text-white rounded-lg text-xs font-bold transition-all shadow-lg shadow-primary/20 active:scale-95">
+                            <span class="material-symbols-outlined text-base">add_circle</span>
+                            <span>New Chat</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Chat Messages -->
+                <div id="chat-container" class="flex-1 overflow-y-auto p-6 space-y-4">
+                    {% for chat_msg in chat_history %}
+                    {% if chat_msg.type == 'user' %}
+                    <div class="flex justify-end">
+                        <div class="max-w-[85%] bg-primary text-white rounded-2xl rounded-tr-sm px-4 py-3 shadow-sm">
+                            <p class="text-sm whitespace-pre-wrap">{{ chat_msg.message }}</p>
+                            <span class="text-[10px] opacity-70 mt-1 block">{{ chat_msg.timestamp }}</span>
+                        </div>
+                    </div>
+{% elif chat_msg.type == 'ai' %}
+<div class="flex gap-3">
+    <div class="size-8 bg-gradient-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+        <span class="material-symbols-outlined text-primary text-lg">smart_toy</span>
+    </div>
+    <div class="flex-1 max-w-[90%]">
+        <div class="bg-gray-100 dark:bg-gray-800 rounded-2xl rounded-tl-sm shadow-sm overflow-hidden">
+<div class="px-4 py-3 space-y-3">
+    <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">
+        Code Analysis Summary
+    </h2>
+
+    <div class="text-sm text-gray-700 dark:text-gray-300">
+        <p>
+            <span class="font-medium">Bugs Found:</span>
+            {{ analysis.bugs_found }}
+        </p>
+    </div>
+
+    <div class="text-sm text-gray-700 dark:text-gray-300">
+        <p class="font-medium">Identified Issues:</p>
+        <ul class="list-disc list-inside">
+            {% for issue in analysis.issues %}
+                <li>{{ issue }}</li>
+            {% empty %}
+                <li>No issues detected.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div>
+        <p class="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Corrected Code
+        </p>
+        <pre class="mt-1 rounded-md bg-gray-100 p-3 text-xs text-gray-800 dark:bg-gray-900 dark:text-gray-100 overflow-x-auto">
+{{ analysis.corrected_code }}
+        </pre>
+    </div>
+
+    <div class="text-sm text-gray-700 dark:text-gray-300">
+        <p class="font-medium">Explanation</p>
+        <p class="mt-1">
+            {{ analysis.explanation }}
+        </p>
+    </div>
+</div>
+
+
+            <div class="feedback-container border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20 px-4 py-3">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Rate this response - Feedback</span>
+                </div>
+                
+                <div class="flex gap-2 feedback-buttons">
+                    <button onclick="handleFeedback(this, 'good')" 
+                        class="flex-1 flex items-center justify-center gap-2 py-2 px-3 bg-white dark:bg-gray-700 hover:bg-green-50 dark:hover:bg-green-900/20 border border-gray-200 dark:border-gray-600 rounded-lg text-xs font-bold text-gray-700 dark:text-gray-200 transition-all active:scale-95">
+                        <span class="material-symbols-outlined text-green-500 text-sm">thumb_up</span>
+                        Good
+                    </button>
+                    <button onclick="handleFeedback(this, 'bad')" 
+                        class="flex-1 flex items-center justify-center gap-2 py-2 px-3 bg-white dark:bg-gray-700 hover:bg-red-50 dark:hover:bg-red-900/20 border border-gray-200 dark:border-gray-600 rounded-lg text-xs font-bold text-gray-700 dark:text-gray-200 transition-all active:scale-95">
+                        <span class="material-symbols-outlined text-red-500 text-sm">thumb_down</span>
+                        Bad
+                    </button>
+                </div>
+
+                <div class="feedback-thanks hidden py-1 text-center animate-pulse">
+                    <p class="text-xs font-bold text-primary flex items-center justify-center gap-1">
+                        <span class="material-symbols-outlined text-sm">verified</span>
+                        <span>Thanks!</span>
+                    </p>
+                </div>
+                <div class="feedback-sorry hidden py-1 text-center">
+                    <p class="text-xs font-bold text-amber-500 flex items-center justify-center gap-1">
+                        <span class="material-symbols-outlined text-sm">error</span>
+                        <span>We are sorry.</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+                    {% endfor %}
+
+                    {% if not analysis and not chat_history %}
+                    <div class="flex gap-3">
+                        <div
+                            class="size-8 bg-gradient-to-br from-primary/10 to-primary/5 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="material-symbols-outlined text-primary text-lg">smart_toy</span>
+                        </div>
+                        <div class="flex-1">
+                            <div class="bg-gray-100 dark:bg-gray-800 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
+                                <p class="text-sm text-gray-900 dark:text-white mb-1">👋 Hi! I'm your AI Code Assistant.
+                                </p>
+                                <p class="text-sm text-gray-700 dark:text-gray-300 mb-3">I can help you:</p>
+                                <ul class="space-y-2 mb-3">
+                                    <li class="text-xs text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-amber-500 text-sm">bug_report</span>
+                                        <span>Find and fix bugs</span>
+                                    </li>
+                                    <li class="text-xs text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                                        <span
+                                            class="material-symbols-outlined text-green-500 text-sm">auto_awesome</span>
+                                        <span>Generate code</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="border-t border-gray-200 dark:border-gray-800 p-4 bg-white dark:bg-[#242628]">
+    <form id="chat-form" hidden method="POST" action="{% url 'users:coding_assistant' %}{% if current_chat_id %}?chat_id={{ current_chat_id }}{% endif %}" class="relative">
+        {% csrf_token %}
+        <input type="hidden" name="code_context" id="chat-code-input">
+        
+        <textarea id="chat-input" name="message" rows="1"
+            class="w-full pl-4 pr-12 py-3 bg-gray-50 dark:bg-[#1a1d1f] border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-primary focus:border-transparent resize-none outline-none dark:text-white"
+            placeholder="Ask a follow-up..."></textarea>
+            
+        <button type="submit" id="send-btn"
+            class="absolute right-2 top-2 size-8 bg-primary text-white rounded-lg flex items-center justify-center hover:bg-primary/90 transition-all disabled:opacity-50">
+            <span class="material-symbols-outlined text-xl">send</span>
+        </button>
+    </form>
+
+    <div class="flex items-center justify-between mt-2 px-1">
+        <div class="flex items-center gap-2 text-[10px] text-gray-500 dark:text-gray-400">
+            <span class="material-symbols-outlined text-xs">info</span>
+            <span id="char-counter">0/500</span>
+        </div>
+        <a href="{% url 'users:clear_chat' %}" class="text-[10px] text-gray-500 hover:text-red-500 transition-colors">Clear</a>
+    </div>
+</div>
+
+                <!-- Chat Input -->
+                <div class="border-t border-gray-200 dark:border-gray-800 p-4 bg-white dark:bg-[#242628]">
+
+
+                    <div class="flex items-center justify-between mt-2 px-1">
+                        <div class="flex items-center gap-2 text-[10px] text-gray-500 dark:text-gray-400">
+                            <span class="material-symbols-outlined text-xs">info</span>
+                            <span>Try: "create a for loop" or "write HTML login page"</span>
+                        </div>
+                        <a href="{% url 'users:clear_chat' %}"
+                            class="text-[10px] text-gray-500 hover:text-red-500 transition-colors">Clear</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    #code-editor::-webkit-scrollbar,
+    #chat-container::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    #code-editor::-webkit-scrollbar-thumb,
+    #chat-container::-webkit-scrollbar-thumb {
+        background: rgba(53, 103, 105, 0.2);
+        border-radius: 4px;
+    }
+
+    #code-editor::-webkit-scrollbar-thumb:hover,
+    #chat-container::-webkit-scrollbar-thumb:hover {
+        background: rgba(53, 103, 105, 0.4);
+    }
+
+    #chat-container {
+        scroll-behavior: smooth;
+    }
+
+    /* Sync scroll between textarea and line numbers */
+    #code-editor {
+        line-height: 1.5rem;
+        /* 24px = 6 in tailwind leading-6 */
+    }
+
+    #line-numbers div {
+        line-height: 1.5rem;
+        /* Match textarea line height */
+    }
+</style>
+<script>
+    let editor;
+    const codeTextArea = document.getElementById('code-editor');
+    const languageSelect = document.getElementById('language-select');
+    const debugForm = document.getElementById('debug-form');
+    const debugBtn = document.getElementById('debug-btn');
+    const copyBtn = document.getElementById('copy-btn');
+    const clearBtn = document.getElementById('clear-btn');
+    const charCount = document.getElementById('char-count');
+    const cursorPosition = document.getElementById('cursor-position');
+    const editorStatus = document.getElementById('editor-status');
+
+    // Initialize Monaco
+    require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } });
+    require(['vs/editor/editor.main'], function() {
+        const isDark = true; // Results page is dark themed by design
+        
+        editor = monaco.editor.create(document.getElementById('monaco-editor'), {
+            value: codeTextArea.value,
+            language: languageSelect.value,
+            theme: 'vs-dark',
+            automaticLayout: true,
+            fontSize: 14,
+            lineHeight: 24,
+            fontFamily: "'Fira Code', monospace",
+            minimap: { enabled: false },
+            scrollBeyondLastLine: false,
+            padding: { top: 20 },
+            tabSize: 4,
+            readOnly: false
+        });
+
+        editor.onDidChangeModelContent(() => {
+            codeTextArea.value = editor.getValue();
+            charCount.textContent = `${editor.getValue().length} chars`;
+        });
+
+        editor.onDidChangeCursorPosition((e) => {
+            cursorPosition.textContent = `Ln ${e.position.lineNumber}, Col ${e.position.column}`;
+        });
+
+        // Apply corrected code with animation
+        const rawCodeEl = document.getElementById('raw-corrected-code');
+        if (rawCodeEl && rawCodeEl.textContent.trim()) {
+            const correctedCode = rawCodeEl.textContent;
+            const bugsFound = {{ analysis.bugs_found|default:0 }};
+            
+            setTimeout(() => {
+                editor.setValue(correctedCode);
+                
+                // Hide robot and show editor
+                const robotContainer = document.getElementById('robot-container');
+                const monacoEl = document.getElementById('monaco-editor');
+                if (robotContainer) {
+                    robotContainer.style.opacity = '0';
+                    setTimeout(() => {
+                        robotContainer.style.display = 'none';
+                        monacoEl.classList.replace('opacity-0', 'opacity-100');
+                    }, 700);
+                }
+
+                // Update status
+                let statusMsg = bugsFound > 0 ? `Fixed ${bugsFound} bugs!` : 'Code optimized!';
+                editorStatus.innerHTML = `<span class="text-emerald-500 font-bold">${statusMsg}</span>`;
+            }, 500);
+        } else {
+            // No corrected code, just show original
+            const robotContainer = document.getElementById('robot-container');
+            const monacoEl = document.getElementById('monaco-editor');
+            if (robotContainer) {
+                robotContainer.style.display = 'none';
+                monacoEl.classList.replace('opacity-0', 'opacity-100');
+            }
+        }
+    });
+
+    // Copy button
+    copyBtn.addEventListener('click', async () => {
+        const code = editor ? editor.getValue() : codeTextArea.value;
+        try {
+            await navigator.clipboard.writeText(code);
+            const btnText = copyBtn.querySelector('span:last-child');
+            btnText.textContent = 'Copied!';
+            setTimeout(() => btnText.textContent = 'Copy', 2000);
+        } catch (err) {}
+    });
+
+    // Clear button
+    clearBtn.addEventListener('click', () => {
+        if (confirm('Clear editor?')) {
+            if (editor) editor.setValue('');
+            else codeTextArea.value = '';
+        }
+    });
+
+    // Form submission
+    debugForm.addEventListener('submit', (e) => {
+        const code = editor ? editor.getValue().trim() : codeTextArea.value.trim();
+        if (!code) {
+            e.preventDefault();
+            alert('Enter code first!');
+            return;
+        }
+        codeTextArea.value = code; // Final sync
+        debugBtn.innerHTML = '<span class="material-symbols-outlined text-lg animate-spin">progress_activity</span> <span>Analyzing...</span>';
+        debugBtn.disabled = true;
+    });
+</script>
+</script>
+<script>
+    // Function to detect and handle code blocks in chat
+    function setupChatCodeBlocks() {
+        // Check for code blocks in AI responses
+        const aiResponses = document.querySelectorAll('.chat-message-ai, .ai-response');
+        aiResponses.forEach(response => {
+            // Look for code blocks (pre or code tags)
+            const codeBlocks = response.querySelectorAll('pre code, .code-block, code');
+            
+            codeBlocks.forEach(block => {
+                const codeText = block.textContent.trim();
+                
+                // Check if it looks like Python code
+                if (codeText.length > 5 && 
+                    (codeText.includes('\n') || 
+                     codeText.includes('def ') || 
+                     codeText.includes('class ') || 
+                     codeText.includes('print('))) {
+                    
+                    // Add "Apply to Editor" button if not already there
+                    if (!block.dataset.hasApplyButton) {
+                        const applyButton = document.createElement('button');
+                        applyButton.className = 'mt-2 px-3 py-1 bg-primary hover:bg-primary/90 text-white text-xs rounded-lg transition-colors flex items-center gap-1';
+                        applyButton.innerHTML = `
+                            <span class="material-symbols-outlined text-sm">code</span>
+                            <span>Apply to Editor</span>
+                        `;
+                        
+                        applyButton.onclick = () => {
+                            if (confirm('Replace current code in editor with this code?')) {
+                                if (editor) {
+                                    editor.setValue(codeText);
+                                    editor.focus();
+                                    editorStatus.innerHTML = '<span class="text-blue-500 font-bold">Code applied from chat!</span>';
+                                    setTimeout(() => editorStatus.textContent = 'Ready', 3000);
+                                }
+                            }
+                        };
+                        
+                        // Insert button after code block
+                        block.parentNode.insertBefore(applyButton, block.nextSibling);
+                        block.dataset.hasApplyButton = 'true';
+                    }
+                }
+            });
+        });
+    }
+
+    // Call this function when DOM is loaded
+    document.addEventListener('DOMContentLoaded', setupChatCodeBlocks);
+
+
+    // Editor event listeners
+    editor.addEventListener('input', () => {
+        updateLineNumbers();
+        updateStats();
+    });
+    editor.addEventListener('scroll', syncScroll);
+    editor.addEventListener('click', updateCursorPosition);
+    editor.addEventListener('keyup', updateCursorPosition);
+
+    // Copy button
+    copyBtn.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(editor.value);
+            const btnText = copyBtn.querySelector('span:last-child');
+            const orig = btnText.textContent;
+            btnText.textContent = 'Copied!';
+            copyBtn.classList.add('text-green-500');
+            setTimeout(() => {
+                btnText.textContent = orig;
+                copyBtn.classList.remove('text-green-500');
+            }, 2000);
+        } catch (err) {
+            console.error('Copy failed:', err);
+        }
+    });
+
+    // Clear button
+    clearBtn.addEventListener('click', () => {
+        if (confirm('Clear the editor?')) {
+            editor.value = '';
+            updateLineNumbers();
+            updateStats();
+            updateCursorPosition();
+        }
+    });
+
+    // Form submission
+    debugForm.addEventListener('submit', (e) => {
+        if (!editor.value.trim()) {
+            e.preventDefault();
+            alert('Please enter some code!');
+            return;
+        }
+        debugBtn.innerHTML = '<span class="material-symbols-outlined text-lg animate-spin">progress_activity</span> <span>Analyzing...</span>';
+        debugBtn.disabled = true;
+    });
+
+    // Debug: Log when elements are found
+    console.log('🔍 Chat elements:', {
+        chatInput: !!chatInput,
+        sendBtn: !!sendBtn,
+        chatForm: !!chatForm,
+        chatCodeInput: !!chatCodeInput
+    });
+
+    if (!chatInput || !chatForm) {
+        console.error('❌ Chat elements not found!');
+    }
+
+    // Chat: Auto-resize textarea and enable/disable send button
+    chatInput.addEventListener('input', () => {
+        chatInput.style.height = 'auto';
+        chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+        charCounter.textContent = `${chatInput.value.length}/500`;
+        sendBtn.disabled = !chatInput.value.trim();
+        console.log('📝 Input changed:', chatInput.value);
+    });
+
+    // Chat: Handle Enter key
+    chatInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            const message = chatInput.value.trim();
+
+            if (message) {
+                console.log('⏎ Enter pressed, submitting:', message);
+                chatCodeInput.value = editor.value;
+                chatForm.submit();
+            }
+        }
+    });
+
+    // Chat: Handle form submission
+    chatForm.addEventListener('submit', (e) => {
+        const message = chatInput.value.trim();
+
+        console.log('📤 Form submitting:', {
+            message: message,
+            message_length: message.length,
+            chat_mode: 'true',
+            code_length: editor.value.length
+        });
+
+        if (!message) {
+            e.preventDefault();
+            console.log('❌ Empty message, prevented submission');
+            return;
+        }
+
+        chatCodeInput.value = editor.value;
+        sendBtn.innerHTML = '<span class="material-symbols-outlined text-xl animate-spin">progress_activity</span>';
+        sendBtn.disabled = true;
+        chatInput.disabled = true;
+
+        console.log('✅ Form submitted with message:', message);
+    });
+
+    // Initialize
+    if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
+    updateLineNumbers();
+    updateStats();
+    updateCursorPosition();
+
+function handleFeedback(button, type) {
+    const container = button.closest('.feedback-container');
+    const buttonsDiv = container.querySelector('.feedback-buttons');
+    const headerText = container.querySelector('span.uppercase');
+    const thanksDiv = container.querySelector('.feedback-thanks');
+    const sorryDiv = container.querySelector('.feedback-sorry');
+
+    // Hide original buttons and header immediately
+    buttonsDiv.classList.add('hidden');
+    headerText.classList.add('hidden');
+
+    if (type === 'good') {
+        thanksDiv.classList.remove('hidden');
+    } else {
+        // Show the Sorry message
+        sorryDiv.classList.remove('hidden');
+        sorryDiv.innerHTML = `
+            <p class="text-xs font-bold text-amber-500 flex items-center justify-center gap-1">
+                <span class="material-symbols-outlined text-sm animate-spin">progress_activity</span>
+                <span>Connecting to AI agent...</span>
+            </p>
+        `;
+
+        // Show full page loader
+        const loader = document.getElementById('full-page-loader');
+        if (loader) {
+            loader.classList.remove('hidden');
+            
+            // Prevent scrolling while loading
+            document.body.style.overflow = 'hidden';
+            
+            // Animate the text in loader
+            const loadingTexts = [
+                "Analyzing your feedback...",
+                "Connecting to AI agent...",
+                "Preparing improved solution...",
+                "Almost ready..."
+            ];
+            
+            let textIndex = 0;
+            const textElement = loader.querySelector('p.text-gray-600');
+            const interval = setInterval(() => {
+                if (textElement && textIndex < loadingTexts.length) {
+                    textElement.textContent = loadingTexts[textIndex];
+                    textIndex++;
+                }
+            }, 800);
+        }
+
+        // Logic: Trigger AI Continuation
+        const currentCode = document.getElementById('code-editor').value;
+        const chatInput = document.getElementById('chat-input');
+        const chatForm = document.getElementById('chat-form');
+        const chatCodeInput = document.getElementById('chat-code-input');
+
+        if (chatForm && chatInput) {
+            // Disable send button to prevent double-submit
+            const sendBtn = document.getElementById('send-btn');
+            if(sendBtn) sendBtn.disabled = true;
+
+            // Injected prompt for the AI agent
+            chatInput.value = "The previous solution didn't work. I've updated the code in the editor. Please provide an improved analysis or fix for this specific version:\n\n" + currentCode;
+            
+            if (chatCodeInput) chatCodeInput.value = currentCode;
+
+            // Submit after 1.5 seconds so user can see the loading state
+            setTimeout(() => {
+                chatForm.submit();
+                
+                // Optional: Fallback in case submission hangs
+                setTimeout(() => {
+                    const loader = document.getElementById('full-page-loader');
+                    if (loader && !loader.classList.contains('hidden')) {
+                        loader.querySelector('p.text-gray-600').textContent = "Taking longer than expected...";
+                    }
+                }, 10000);
+            }, 1500);
+        } else {
+            // Fallback if elements not found
+            console.error('Chat elements not found');
+            const loader = document.getElementById('full-page-loader');
+            if (loader) {
+                loader.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }
+        }
+    }
+}
+
+
+
+</script>
+{% endblock %}

@@ -1,0 +1,143 @@
+{% extends "base/base.html" %}
+
+{% block title %}Page Not Found{% endblock title %}
+
+{% block content %}
+<style>
+  .error-container {
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    color: #fff;
+    background: radial-gradient(circle at center, #1a1a2e 0%, #16213e 100%);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-top: 2rem;
+  }
+
+  .error-code {
+    font-size: 8rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #00f260 0%, #0575e6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    position: relative;
+    animation: drift 3s ease-in-out infinite alternate;
+  }
+
+  @keyframes drift {
+    0% {
+      transform: translateY(0);
+    }
+
+    100% {
+      transform: translateY(-20px);
+    }
+  }
+
+  .ghost {
+    font-size: 5rem;
+    margin-bottom: 1rem;
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+
+    0%,
+    100% {
+      transform: translate(0, 0) rotate(0deg);
+    }
+
+    25% {
+      transform: translate(10px, -10px) rotate(5deg);
+    }
+
+    50% {
+      transform: translate(0, -20px) rotate(0deg);
+    }
+
+    75% {
+      transform: translate(-10px, -10px) rotate(-5deg);
+    }
+  }
+
+  .message {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+    color: #e0e0e0;
+    max-width: 600px;
+  }
+
+  .btn-home {
+    background: linear-gradient(135deg, #00f260 0%, #0575e6 100%);
+    color: white;
+    border: none;
+    padding: 12px 32px;
+    font-size: 1.1rem;
+    border-radius: 30px;
+    text-decoration: none;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    font-weight: 600;
+  }
+
+  .btn-home:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(5, 117, 230, 0.3);
+    color: white;
+  }
+
+  .star {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    animation: twinkle 4s infinite;
+  }
+
+  @keyframes twinkle {
+
+    0%,
+    100% {
+      opacity: 0.2;
+      transform: scale(0.8);
+    }
+
+    50% {
+      opacity: 1;
+      transform: scale(1.2);
+    }
+  }
+</style>
+
+<div class="error-container">
+  <!-- Stars Background -->
+  {% for i in "x"|rjust:"20" %}
+  <div class="star" style="
+    top: {{ forloop.counter|stringformat:'i' }}0%; 
+    left: {{ forloop.counter|add:10 }}%; 
+    width: 2px; 
+    height: 2px; 
+    animation-delay: {{ forloop.counter }}s;">
+  </div>
+  {% endfor %}
+
+  <div class="ghost">👻</div>
+  <div class="error-code">404</div>
+  <h2 class="mb-3">Whoops! Lost in Space?</h2>
+  <p class="message">
+    {% if exception %}
+    {{ exception }}
+    {% else %}
+    The page you're looking for seems to have drifted into a black hole.
+    {% endif %}
+  </p>
+
+  <a href="{% url 'home' %}" class="btn-home">
+    Take Me Home
+  </a>
+</div>
+{% endblock content %}

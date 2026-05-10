@@ -1,0 +1,527 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+<div class="min-h-screen bg-slate-50 dark:bg-slate-900">
+
+    <!-- Top Navigation Bar -->
+    <nav class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+
+                <!-- Logo & Brand -->
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-teal-600 rounded-lg flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white">code</span>
+                    </div>
+                    <div class="hidden sm:block">
+                        <h2 class="font-bold text-slate-800 dark:text-slate-100">AI Debugger</h2>
+                        <p class="text-xs text-slate-500">Pro Developer Plan</p>
+                    </div>
+                </div>
+
+                <!-- Navigation Links -->
+                <div class="hidden md:flex items-center gap-1">
+                    <a href="{% url 'users:dashboard' %}"
+                        class="flex items-center gap-2 px-4 py-2 bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-400 rounded-lg font-medium transition-colors">
+                        <span class="material-symbols-outlined text-xl">dashboard</span>
+                        <span>Dashboard</span>
+                    </a>
+
+                    <a href="{% url 'users:chat_list' %}"
+                        class="flex items-center gap-2 px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg font-medium transition-colors">
+                        <span class="material-symbols-outlined text-xl">history</span>
+                        <span>History</span>
+                    </a>
+
+
+
+                    <a href="/settings/"
+                        class="flex items-center gap-2 px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg font-medium transition-colors">
+                        <span class="material-symbols-outlined text-xl">settings</span>
+                        <span>Settings</span>
+                    </a>
+                </div>
+
+                <!-- Right Side Actions -->
+                <div class="flex items-center gap-3">
+                    <a href="{% url 'users:new_chat' %}"
+                        class="hidden sm:flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition-colors">
+                        <span class="material-symbols-outlined text-xl">add</span>
+                        <span>New Chat</span>
+                    </a>
+
+                    <!-- Mobile New Chat Button -->
+                    <a href="{% url 'users:new_chat' %}"
+                        class="sm:hidden w-10 h-10 bg-teal-600 text-white rounded-lg flex items-center justify-center">
+                        <span class="material-symbols-outlined">add</span>
+                    </a>
+
+                    <!-- User Profile -->
+                    <div class="flex items-center gap-2 pl-3 border-l border-slate-200 dark:border-slate-700">
+                        <div class="w-9 h-9 bg-orange-400 rounded-full flex items-center justify-center">
+                            <span class="font-bold text-white text-sm">{{ request.user.email.0|upper }}</span>
+                        </div>
+                        <div class="hidden lg:block">
+                            <p class="text-sm font-medium text-slate-800 dark:text-slate-100">
+                                {{ request.user.get_full_name|default:request.user.email|truncatewords:1 }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Menu Button -->
+                    <button id="mobile-menu-btn"
+                        class="md:hidden w-10 h-10 flex items-center justify-center text-slate-600 dark:text-slate-400">
+                        <span class="material-symbols-outlined">menu</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu"
+            class="hidden md:hidden border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+            <div class="px-4 py-3 space-y-1">
+                <a href="{% url 'users:dashboard' %}"
+                    class="flex items-center gap-2 px-4 py-2 bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-400 rounded-lg font-medium">
+                    <span class="material-symbols-outlined">dashboard</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'users:chat_list' %}"
+                    class="flex items-center gap-2 px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg font-medium">
+                    <span class="material-symbols-outlined">history</span>
+                    <span>History</span>
+                </a>
+                <a href="#"
+                    class="flex items-center gap-2 px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg font-medium">
+                    <span class="material-symbols-outlined">code_blocks</span>
+                    <span>Snippets</span>
+                </a>
+                <a href="#"
+                    class="flex items-center gap-2 px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg font-medium">
+                    <span class="material-symbols-outlined">settings</span>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+
+        <!-- Header -->
+        <div class="mb-6 sm:mb-8">
+            <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100">Dashboard</h1>
+            <p class="text-slate-600 dark:text-slate-400 mt-1 text-sm sm:text-base">
+                Welcome back! Here's your coding activity overview.
+            </p>
+        </div>
+
+        <!-- Stats Overview Cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
+
+            <!-- Total Chats -->
+            <div
+                class="bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3 sm:mb-4">
+                    <div
+                        class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mb-2 sm:mb-0">
+                        <span
+                            class="material-symbols-outlined text-blue-600 dark:text-blue-400 text-xl sm:text-2xl">forum</span>
+                    </div>
+                    <span
+                        class="hidden sm:inline-block px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-semibold rounded-full">
+                        Total
+                    </span>
+                </div>
+                <h3 class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-1">{{ total_chats }}
+                </h3>
+                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Chat Sessions</p>
+            </div>
+
+            <!-- Messages -->
+            <div
+                class="bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3 sm:mb-4">
+                    <div
+                        class="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mb-2 sm:mb-0">
+                        <span
+                            class="material-symbols-outlined text-purple-600 dark:text-purple-400 text-xl sm:text-2xl">chat</span>
+                    </div>
+                    <span
+                        class="hidden sm:inline-block px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-xs font-semibold rounded-full">
+                        All Time
+                    </span>
+                </div>
+                <h3 class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-1">{{ total_messages }}
+                </h3>
+                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Total Messages</p>
+                <p class="text-xs text-slate-500 dark:text-slate-500 mt-1 sm:mt-2">
+                    Avg {{ avg_messages }} per chat
+                </p>
+            </div>
+
+            <!-- This Week -->
+            <div
+                class="bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3 sm:mb-4">
+                    <div
+                        class="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center mb-2 sm:mb-0">
+                        <span
+                            class="material-symbols-outlined text-green-600 dark:text-green-400 text-xl sm:text-2xl">trending_up</span>
+                    </div>
+                    <span
+                        class="hidden sm:inline-block px-2 py-1 {% if growth_percentage >= 0 %}bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400{% else %}bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400{% endif %} text-xs font-semibold rounded-full">
+                        {% if growth_percentage >= 0 %}+{% endif %}{{ growth_percentage }}%
+                    </span>
+                </div>
+                <h3 class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-1">{{ chats_this_week }}
+                </h3>
+                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400">This Week</p>
+            </div>
+
+            <!-- Code Snippets -->
+            <div
+                class="bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3 sm:mb-4">
+                    <div
+                        class="w-10 h-10 sm:w-12 sm:h-12 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center mb-2 sm:mb-0">
+                        <span
+                            class="material-symbols-outlined text-orange-600 dark:text-orange-400 text-xl sm:text-2xl">code_blocks</span>
+                    </div>
+                    <span
+                        class="hidden sm:inline-block px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 text-xs font-semibold rounded-full">
+                        Saved
+                    </span>
+                </div>
+                <h3 class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-1">
+                    {{total_code_snippets }}</h3>
+                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Code Snippets</p>
+            </div>
+
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+
+            <!-- Activity Chart -->
+            <div
+                class="bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700 shadow-sm">
+                <div class="flex items-center justify-between mb-4 sm:mb-6">
+                    <div>
+                        <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">Weekly Activity
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Last 7 days</p>
+                    </div>
+                    <span class="material-symbols-outlined text-slate-400">show_chart</span>
+                </div>
+                <div class="h-48 sm:h-64">
+                    <canvas id="activityChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Language Distribution -->
+            <div
+                class="bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700 shadow-sm">
+                <div class="flex items-center justify-between mb-4 sm:mb-6">
+                    <div>
+                        <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">Languages</h3>
+                        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Distribution</p>
+                    </div>
+                    <span class="material-symbols-outlined text-slate-400">pie_chart</span>
+                </div>
+                <div class="h-48 sm:h-64">
+                    <canvas id="languageChart"></canvas>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Monthly Trend & Success Rate -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+
+            <!-- Monthly Trend -->
+            <div
+                class="lg:col-span-4 bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700 shadow-sm">
+                <div class="flex items-center justify-between mb-6 sm:mb-6">
+                    <div>
+                        <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">Monthly Trend</h3>
+                        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Last 6 months</p>
+                    </div>
+                    <span class="material-symbols-outlined text-slate-400">timeline</span>
+                </div>
+                <div class="h-48 sm:h-56">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Success Rate -->
+            {% comment %} <div
+                class="bg-gradient-to-br from-teal-500 to-teal-700 rounded-lg sm:rounded-xl p-4 sm:p-6 shadow-sm text-white">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-base sm:text-lg font-bold">Success Rate</h3>
+                    <span class="material-symbols-outlined">check_circle</span>
+                </div>
+
+                <div class="relative w-32 h-32 sm:w-40 sm:h-40 mx-auto my-4 sm:my-6">
+                    <svg class="transform -rotate-90" width="100%" height="100%" viewBox="0 0 160 160">
+                        <circle cx="80" cy="80" r="70" stroke="rgba(255,255,255,0.2)" stroke-width="12" fill="none" />
+                        <circle cx="80" cy="80" r="70" stroke="white" stroke-width="12" fill="none"
+                            stroke-dasharray="439.6 439.6"
+                            style="stroke-dashoffset: calc(439.6 - (439.6 * {{ success_rate }} / 100));"
+                            stroke-linecap="round" />
+                    </svg>
+                    <div class="absolute inset-0 flex items-center justify-center flex-col">
+                        <span class="text-3xl sm:text-4xl font-bold">{{ success_rate|floatformat:1 }}%</span>
+                        <span class="text-xs sm:text-sm opacity-90">Resolved</span>
+                    </div>
+                </div>
+
+                <p class="text-xs sm:text-sm text-center opacity-90">
+                    Your debugging sessions are highly successful!
+                </p>
+            </div> {% endcomment %}
+
+        </div>
+
+        <!-- Recent Activity & Peak Hours -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+
+            <!-- Recent Activity -->
+            <div
+                class="bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700 shadow-sm">
+                <div class="flex items-center justify-between mb-4 sm:mb-6">
+                    <div>
+                        <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">Recent Activity
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Latest sessions</p>
+                    </div>
+                    <a href="{% url 'users:chat_list' %}"
+                        class="text-xs sm:text-sm text-teal-600 hover:text-teal-700 font-medium">
+                        View All →
+                    </a>
+                </div>
+
+                <div class="space-y-2 sm:space-y-3">
+                    {% for chat in recent_chats %}
+                    <a href="{% url 'users:chat_detail' chat.session_id %}"
+                        class="block p-3 sm:p-4 bg-slate-50 dark:bg-slate-900/50 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors">
+                        <div class="flex items-start gap-3">
+                            <div
+                                class="w-8 h-8 sm:w-10 sm:h-10 bg-teal-100 dark:bg-teal-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <span
+                                    class="material-symbols-outlined text-teal-600 dark:text-teal-400 text-lg sm:text-xl">code</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h4
+                                    class="font-semibold text-sm sm:text-base text-slate-900 dark:text-slate-100 truncate mb-1">
+                                    {{ chat.title }}
+                                </h4>
+                                <div class="flex items-center gap-2 sm:gap-3 text-xs text-slate-500">
+                                    <span>{{ chat.last_updated|timesince }} ago</span>
+                                    <span>•</span>
+                                    <span>{{ chat.messages.count }} msgs</span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                    {% empty %}
+                    <p class="text-center py-6 sm:py-8 text-sm text-slate-500">No recent activity</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Peak Usage Hours -->
+            <div
+                class="bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700 shadow-sm">
+                <div class="flex items-center justify-between mb-4 sm:mb-6">
+                    <div>
+                        <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">Peak Hours</h3>
+                        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Most active</p>
+                    </div>
+                    <span class="material-symbols-outlined text-slate-400">schedule</span>
+                </div>
+
+                <div class="space-y-2 sm:space-y-3">
+                    {% for hour_data in peak_hours_top %}
+                    <div class="flex items-center gap-2 sm:gap-3">
+                        <div class="w-12 sm:w-16 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300">
+                            {{ hour_data.hour }}
+                        </div>
+                        <div class="flex-1">
+                            <div class="h-7 sm:h-8 bg-slate-100 dark:bg-slate-900 rounded-lg overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-teal-500 to-teal-600 rounded-lg flex items-center justify-end px-2 sm:px-3"
+                                    style="width: {% widthratio hour_data.count 20 100 %}%">
+                                    <span class="text-xs font-semibold text-white">{{ hour_data.count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="mt-4 sm:mt-6 p-3 sm:p-4 bg-teal-50 dark:bg-teal-900/20 rounded-lg">
+                    <p class="text-xs sm:text-sm text-teal-700 dark:text-teal-400">
+                        <span class="material-symbols-outlined text-base align-middle">lightbulb</span>
+                        You're most productive in the afternoon!
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+    // Mobile menu toggle
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+
+    if (mobileMenuBtn && mobileMenu) {
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+    }
+
+    // Parse data from Django
+    const activityData = JSON.parse('{{ activity_data|safe }}');
+    const languageData = JSON.parse('{{ language_distribution|safe }}');
+    const monthlyData = JSON.parse('{{ monthly_data|safe }}');
+
+    // Dark mode detection
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    const textColor = isDarkMode ? '#e2e8f0' : '#334155';
+    const gridColor = isDarkMode ? '#334155' : '#e2e8f0';
+
+    // Responsive font sizes
+    const isMobile = window.innerWidth < 640;
+    const fontSize = isMobile ? 10 : 12;
+
+    // Activity Chart
+    const activityCtx = document.getElementById('activityChart').getContext('2d');
+    new Chart(activityCtx, {
+        type: 'line',
+        data: {
+            labels: activityData.map(d => d.date),
+            datasets: [{
+                label: 'Sessions',
+                data: activityData.map(d => d.count),
+                borderColor: '#14b8a6',
+                backgroundColor: 'rgba(20, 184, 166, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointRadius: isMobile ? 3 : 5,
+                pointBackgroundColor: '#14b8a6',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: isDarkMode ? '#1e293b' : '#fff',
+                    titleColor: textColor,
+                    bodyColor: textColor,
+                    borderColor: gridColor,
+                    borderWidth: 1,
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: textColor, stepSize: 1, font: { size: fontSize } },
+                    grid: { color: gridColor }
+                },
+                x: {
+                    ticks: { color: textColor, font: { size: fontSize } },
+                    grid: { color: gridColor }
+                }
+            }
+        }
+    });
+
+    // Language Chart
+    const languageCtx = document.getElementById('languageChart').getContext('2d');
+    new Chart(languageCtx, {
+        type: 'doughnut',
+        data: {
+            labels: languageData.map(d => d.language),
+            datasets: [{
+                data: languageData.map(d => d.count),
+                backgroundColor: languageData.map(d => d.color),
+                borderWidth: 3,
+                borderColor: isDarkMode ? '#1e293b' : '#fff',
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: isMobile ? 'bottom' : 'right',
+                    labels: {
+                        color: textColor,
+                        padding: isMobile ? 10 : 15,
+                        font: { size: fontSize }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: isDarkMode ? '#1e293b' : '#fff',
+                    titleColor: textColor,
+                    bodyColor: textColor,
+                    borderColor: gridColor,
+                    borderWidth: 1,
+                }
+            }
+        }
+    });
+
+    // Monthly Trend Chart
+    const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+    new Chart(monthlyCtx, {
+        type: 'bar',
+        data: {
+            labels: monthlyData.map(d => d.month),
+            datasets: [{
+                label: 'Chats',
+                data: monthlyData.map(d => d.count),
+                backgroundColor: '#14b8a6',
+                borderRadius: isMobile ? 6 : 8,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: isDarkMode ? '#1e293b' : '#fff',
+                    titleColor: textColor,
+                    bodyColor: textColor,
+                    borderColor: gridColor,
+                    borderWidth: 1,
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: textColor, stepSize: 1, font: { size: fontSize } },
+                    grid: { color: gridColor }
+                },
+                x: {
+                    ticks: { color: textColor, font: { size: fontSize } },
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

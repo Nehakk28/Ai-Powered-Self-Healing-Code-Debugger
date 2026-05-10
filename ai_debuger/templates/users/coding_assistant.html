@@ -1,0 +1,283 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+<div class="flex h-[calc(100vh-4rem)] bg-background-light dark:bg-background-dark">
+
+    <div class="w-80 border-r border-slate-200 dark:border-slate-800 flex flex-col bg-slate-50 dark:bg-slate-900/50">
+        <div class="p-4 border-b border-slate-200 dark:border-slate-800">
+            <a href="{% url 'users:new_chat' %}"
+                class="w-full bg-primary text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-all transform hover:scale-105 active:scale-95 shadow-sm">
+                <span class="material-symbols-outlined">add</span>
+                <span>New Chat</span>
+            </a>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-3">
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-500 px-3 mb-3">Recent Chats</p>
+            {% for chat in recent_chats %}
+            <a href="?chat_id={{ chat.id }}"
+                class="block px-3 py-3 mb-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors {% if current_chat_id == chat.id %}bg-primary/10 border-l-4 border-primary{% else %}border-l-4 border-transparent{% endif %}">
+                <p class="text-sm font-medium truncate text-slate-800 dark:text-slate-200">{{ chat.title }}</p>
+                <p class="text-xs text-slate-500 mt-1">{{ chat.created_at|timesince }} ago</p>
+            </a>
+            {% empty %}
+            <div class="text-center py-12">
+                <p class="text-sm text-slate-500">No chats yet</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="flex-1 flex flex-col">
+
+        <div
+            class="h-16 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 bg-background-light dark:bg-background-dark">
+            <div class="flex items-center gap-3">
+                <div class="relative">
+                    <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]">
+                    </div>
+                </div>
+                <div>
+                    <h2 class="font-bold text-slate-800 dark:text-slate-100">AI Coding Assistant</h2>
+                    <p class="text-[10px] text-slate-500 uppercase tracking-widest">System Active</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="messages-container" class="flex-1 overflow-y-auto px-6 py-6 scroll-smooth">
+            <div class="max-w-4xl mx-auto space-y-6">
+
+                {% if not chat_messages %}
+                <div class="text-center py-12">
+                    <div class="bg-primary/10 p-6 rounded-2xl w-24 h-24 flex items-center justify-center mx-auto mb-6">
+                        <span class="material-symbols-outlined text-primary text-5xl">smart_toy</span>
+                    </div>
+                    <h1 class="text-4xl font-bold text-slate-800 dark:text-slate-100 mb-3">How can I help you code?</h1>
+                </div>
+                {% endif %}
+
+                {% for msg in chat_messages %}
+                {% if msg.role == 'user' %}
+                <div class="flex justify-end slide-in">
+                    <div class="flex items-start gap-3 max-w-3xl">
+                        <div class="bg-primary text-white rounded-2xl rounded-tr-md px-5 py-3 shadow-md">
+                            <p class="text-sm leading-relaxed whitespace-pre-wrap">{{ msg.content }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="flex justify-start slide-in">
+                    <div class="flex items-start gap-3 w-full max-w-4xl">
+                        <div
+                            class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                            <span class="material-symbols-outlined text-primary text-xl">smart_toy</span>
+                        </div>
+                        <div
+                            class="flex-1 bg-white dark:bg-slate-800/40 rounded-2xl rounded-tl-md px-5 py-4 shadow-sm border border-slate-200 dark:border-slate-700/50">
+                            <div class="prose prose-slate dark:prose-invert prose-sm max-w-none">
+                                {{ msg.content|safe }}
+                            </div>
+
+                            {% if '```' in msg.content %}
+                            <div class="mt-4 flex justify-end">
+                                <button onclick="copyCode(this)"
+                                    class="px-3 py-1.5 bg-slate-900 text-white text-xs font-semibold rounded-lg hover:bg-primary transition-colors flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-sm">content_copy</span>
+                                    <span>Copy Snippet</span>
+                                </button>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+
+                <div id="typing-indicator" class="hidden flex justify-start mb-4">
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                            <span class="material-symbols-outlined text-primary text-xl">smart_toy</span>
+                        </div>
+                        <div
+                            class="bg-slate-100 dark:bg-slate-800 px-5 py-4 rounded-2xl flex gap-1.5 items-center shadow-sm">
+                            <span class="w-2 h-2 bg-primary/60 rounded-full animate-typing-bounce"></span>
+                            <span
+                                class="w-2 h-2 bg-primary/60 rounded-full animate-typing-bounce [animation-delay:0.2s]"></span>
+                            <span
+                                class="w-2 h-2 bg-primary/60 rounded-full animate-typing-bounce [animation-delay:0.4s]"></span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="border-t border-slate-200 dark:border-slate-800 p-4 bg-white dark:bg-background-dark">
+            <form id="chat-form" method="POST" class="max-w-4xl mx-auto">
+                {% csrf_token %}
+                <div
+                    class="flex items-end gap-3 bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-2xl p-2 focus-within:border-primary transition-all">
+                    <textarea id="message-input" name="message" rows="1"
+                        class="flex-1 px-3 py-2 bg-transparent border-none focus:ring-0 text-slate-800 dark:text-slate-100 placeholder-slate-400 resize-none"
+                        placeholder="Ask a coding question..." maxlength="4000"></textarea>
+
+                    <button type="submit" id="send-btn"
+                        class="bg-primary text-white w-12 h-12 rounded-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:grayscale relative"
+                        disabled>
+                        <span id="btn-icon" class="material-symbols-outlined text-2xl">send</span>
+                        <span id="btn-spinner" class="hidden absolute inset-0 flex items-center justify-center">
+                            <svg class="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
+                            </svg>
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    /* 1. Pure Black Code Blocks */
+    .prose pre {
+        background-color: #000000 !important;
+        color: #f8fafc !important;
+        border: 1px solid #334155;
+        border-radius: 12px !important;
+        padding: 1.5rem !important;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    }
+
+    .prose pre code {
+        color: #f8fafc !important;
+        background-color: transparent !important;
+    }
+
+    /* Inline code styling */
+    .prose :not(pre)>code {
+        background-color: #000000 !important;
+        color: #38bdf8 !important;
+        padding: 0.2rem 0.4rem;
+        border-radius: 6px;
+    }
+
+    /* 2. Custom Typing Animation */
+    @keyframes typingBounce {
+
+        0%,
+        100% {
+            transform: translateY(0);
+            opacity: 0.4;
+        }
+
+        50% {
+            transform: translateY(-6px);
+            opacity: 1;
+        }
+    }
+
+    .animate-typing-bounce {
+        animation: typingBounce 0.8s infinite ease-in-out;
+    }
+
+    /* 3. Spinner Animation */
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .animate-spin {
+        animation: spin 0.8s linear infinite;
+    }
+
+    /* Custom Scrollbar */
+    #messages-container::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    #messages-container::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+
+    .dark #messages-container::-webkit-scrollbar-thumb {
+        background: #334155;
+    }
+</style>
+
+<script>
+    const messageInput = document.getElementById('message-input');
+    const sendBtn = document.getElementById('send-btn');
+    const btnIcon = document.getElementById('btn-icon');
+    const btnSpinner = document.getElementById('btn-spinner');
+    const chatForm = document.getElementById('chat-form');
+    const messagesContainer = document.getElementById('messages-container');
+    const typingIndicator = document.getElementById('typing-indicator');
+
+    // 1. Fixed Auto-resize and Button State
+    messageInput.addEventListener('input', () => {
+        messageInput.style.height = 'auto';
+        messageInput.style.height = Math.min(messageInput.scrollHeight, 200) + 'px';
+        sendBtn.disabled = !messageInput.value.trim();
+    });
+
+    // 2. Fixed Enter Key Handling
+    messageInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault(); // Prevents newline in textarea
+            if (!sendBtn.disabled) {
+                chatForm.dispatchEvent(new Event('submit', { cancelable: true }));
+                chatForm.submit(); // Force the actual POST request
+            }
+        }
+    });
+
+    // 3. Optimized Submission UI
+    chatForm.addEventListener('submit', function (e) {
+        // Toggle Loading UI
+        btnIcon.classList.add('invisible');
+        btnSpinner.classList.remove('hidden');
+        typingIndicator.classList.remove('hidden');
+
+        // Prevent multiple clicks
+        sendBtn.disabled = true;
+
+        scrollToBottom();
+    });
+
+    // 4. Copy Logic (Ensuring compatibility with your style)
+    function copyCode(button) {
+        const codeBlock = button.closest('.flex-1').querySelector('pre code');
+        if (codeBlock) {
+            navigator.clipboard.writeText(codeBlock.textContent).then(() => {
+                const label = button.querySelector('span:last-child');
+                const original = label.innerText;
+                label.innerText = 'Copied!';
+                button.classList.add('bg-green-600');
+
+                setTimeout(() => {
+                    label.innerText = original;
+                    button.classList.remove('bg-green-600');
+                }, 2000);
+            });
+        }
+    }
+
+    function scrollToBottom() {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    window.addEventListener('load', scrollToBottom);
+</script>
+{% endblock %}
