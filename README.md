@@ -10,7 +10,7 @@ A Django-based AI debugger that analyzes code errors and provides smart debuggin
 
 ## Installation
 ```bash
-git clone 
+git clone git https://github.com/Nehakk28/Ai-Powered-Self-Healing-Code-Debugger.git
 cd ai_debuger
 pip install -r requirements.txt
 python manage.py migrate
