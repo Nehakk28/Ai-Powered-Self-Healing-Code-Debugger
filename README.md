@@ -24,7 +24,7 @@ An AI-powered Django web application that helps developers analyze, debug, and o
 
 ## User Dashboard
 
-![User Dashboard](images/User_dashboard.png)
+![User Dashboard](images/User_Dashboard.png)
 
 ## Debugger Page
 
