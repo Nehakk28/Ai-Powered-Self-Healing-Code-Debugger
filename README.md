@@ -20,19 +20,19 @@ An AI-powered Django web application that helps developers analyze, debug, and o
 
 ## Sign up Page
 
-![Sign up Page](images/signup page.png)
+![Sign up Page](images/signup_page.png)
 
 ## User Dashboard
 
-![User Dashboard](images/User Dashboard.png)
+![User Dashboard](images/User_dashboard.png)
 
 ## Debugger Page
 
-![Debugger Page](images/Debugger page.png)
+![Debugger Page](images/Debugger_page.png)
 
 ## AI Coding Assistant
 
-![AI Assistant](images/AI assistant.png)
+![AI Assistant](images/AI_assistant.png)
 
 ## Debugging History
 
@@ -40,17 +40,17 @@ An AI-powered Django web application that helps developers analyze, debug, and o
 
 ## Settings Page
 
-![Settings](images/Settings page.png)
+![Settings](images/Settings_page.png)
 
 ## Admin Dashboard
 
-![Admin Dashboard](images/Admin dashboard-1.png)
+![Admin Dashboard](images/Admin_dashboard_1.png)
 
-![Admin Dashboard 2](images/Admin dashboard-2.png)
+![Admin Dashboard 2](images/Admin_dashboard_2.png)
 
 ## User Management
 
-![User Management](images/User management.png)
+![User Management](images/User_management.png)
 
 # Tech Stack
 
